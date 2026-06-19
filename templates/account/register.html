@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Đăng ký - Spa Booking{% endblock %}
+
+{% block content %}
+<section style="max-width: 600px; margin: 40px auto; background: #fff; border: 1px solid rgba(199, 91, 122, 0.12); border-radius: 28px; padding: 32px; box-shadow: 0 18px 50px rgba(199, 91, 122, 0.08);">
+    <p style="color: #c75b7a; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px;">
+        Tài khoản
+    </p>
+
+    <h1 style="margin: 0 0 12px; font-size: 36px; color: #2b2b2b;">
+        Đăng ký
+    </h1>
+
+    <p style="margin: 0 0 24px; color: #666; line-height: 1.7;">
+        Tạo tài khoản để đặt lịch spa và theo dõi lịch hẹn của bạn.
+    </p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="background: #fff1f5; color: #a84363; border: 1px solid rgba(199, 91, 122, 0.2); padding: 14px 16px; border-radius: 16px; margin-bottom: 20px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:register' %}" style="display: grid; gap: 16px;">
+        {% csrf_token %}
+
+        <label>
+            Tên
+            <input type="text" name="name" placeholder="Nhập tên của bạn" required>
+        </label>
+
+        <label>
+            Số điện thoại
+            <input type="text" name="phone" placeholder="Nhập số điện thoại" required>
+        </label>
+
+        <label>
+            Email
+            <input type="email" name="email" placeholder="Nhập email" required>
+        </label>
+
+        <label>
+            Mật khẩu
+            <input type="password" name="password1" placeholder="Nhập mật khẩu tối thiểu 6 ký tự" required>
+        </label>
+
+        <label>
+            Xác nhận mật khẩu
+            <input type="password" name="password2" placeholder="Nhập lại mật khẩu" required>
+        </label>
+
+        <button type="submit" class="btn" style="width: 100%;">
+            Đăng ký
+        </button>
+    </form>
+
+    <p style="text-align: center; margin-top: 22px; color: #666;">
+        Đã có tài khoản?
+        <a href="{% url 'accounts:login' %}" style="color: #c75b7a; font-weight: 800;">
+            Đăng nhập
+        </a>
+    </p>
+</section>
+
+<style>
+    label {
+        display: grid;
+        gap: 8px;
+        font-weight: 700;
+        color: #2b2b2b;
+    }
+
+    input {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 14px;
+        border: 1px solid rgba(199, 91, 122, 0.2);
+        padding: 0 14px;
+        font: inherit;
+        outline: none;
+        background: #fff;
+        margin-top: 8px;
+    }
+
+    input:focus {
+        border-color: #c75b7a;
+        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+    }
+</style>
+{% endblock %}

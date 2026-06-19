@@ -1,0 +1,180 @@
+{% extends 'staff/base_staff.html' %}
+
+{% block title %}Từ chối phục vụ - Spa Booking{% endblock %}
+
+{% block content %}
+
+<section class="reject-page">
+    <div class="reject-card">
+        <div class="reject-header">
+            <p>Từ chối phục vụ</p>
+            <h1>{{ booking.service.name }}</h1>
+            <span>{{ booking.booking_date }} lúc {{ booking.booking_time }}</span>
+        </div>
+
+        <div class="booking-summary">
+            <div>
+                <span>Khách hàng</span>
+                <strong>{{ booking.full_name }}</strong>
+            </div>
+
+            <div>
+                <span>Số điện thoại</span>
+                <strong>{{ booking.phone }}</strong>
+            </div>
+
+            <div>
+                <span>Thanh toán</span>
+                <strong>{{ booking.get_payment_method_display }}</strong>
+            </div>
+
+            <div>
+                <span>Trạng thái</span>
+                <strong>{{ booking.get_status_display }}</strong>
+            </div>
+        </div>
+
+        <form method="post" class="reject-form">
+            {% csrf_token %}
+
+            <label>Lý do từ chối phục vụ</label>
+
+            <textarea
+                name="reason"
+                rows="5"
+                placeholder="Nhập lý do bạn không thể phục vụ lịch này"
+                required
+            ></textarea>
+
+            <div class="action-row">
+                <a href="{% url 'staff:dashboard' %}" class="btn-outline">
+                    Quay lại
+                </a>
+
+                <button type="submit" class="btn btn-danger">
+                    Gửi lý do từ chối
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reject-card {
+        max-width: 860px;
+        margin: 0 auto;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 32px;
+        box-shadow: 0 14px 38px rgba(199, 91, 122, 0.10);
+    }
+
+    .reject-header {
+        text-align: center;
+        margin-bottom: 26px;
+    }
+
+    .reject-header p {
+        color: #c0392b;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+    }
+
+    .reject-header h1 {
+        font-size: 34px;
+        margin: 0 0 10px;
+    }
+
+    .reject-header span {
+        color: var(--muted);
+        font-weight: 700;
+    }
+
+    .booking-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .booking-summary div {
+        background: #fff8fb;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 15px;
+    }
+
+    .booking-summary span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .booking-summary strong {
+        color: var(--accent);
+    }
+
+    .reject-form {
+        display: grid;
+        gap: 12px;
+    }
+
+    .reject-form label {
+        color: var(--text);
+        font-weight: 900;
+    }
+
+    .reject-form textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        font: inherit;
+        outline: none;
+        resize: vertical;
+    }
+
+    .reject-form textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+    }
+
+    .action-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 800px) {
+        .booking-summary {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .booking-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .action-row {
+            justify-content: stretch;
+        }
+
+        .action-row a,
+        .action-row button {
+            width: 100%;
+        }
+    }
+
+</style>
+{% endblock %}

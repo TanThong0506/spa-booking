@@ -1,0 +1,791 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Dịch vụ - Relax Spa{% endblock %}
+
+{% block content %}
+
+<section class="services-page">
+
+    <!-- TIÊU ĐỀ TRANG -->
+    <div class="services-heading">
+        <div class="heading-label">
+            <span></span>
+            Dịch vụ của chúng tôi
+            <span></span>
+        </div>
+
+        <h1>Chăm sóc cơ thể, thư giãn tâm hồn</h1>
+
+        <p>
+            Khám phá các liệu trình chăm sóc được thiết kế riêng,
+            giúp bạn thư giãn và lấy lại nguồn năng lượng tích cực.
+        </p>
+    </div>
+
+    <!-- BỘ LỌC DANH MỤC -->
+    <div class="filter-wrapper">
+        <form method="get" class="category-filter" id="categoryFilterForm">
+            {% if query %}
+                <input type="hidden" name="q" value="{{ query }}">
+            {% endif %}
+
+            <label class="filter-item">
+                <input
+                    type="radio"
+                    name="category"
+                    value=""
+                    {% if not category_slug %}checked{% endif %}
+                >
+
+                <span>
+                    Tất cả dịch vụ
+                </span>
+            </label>
+
+            {% for category in categories %}
+                <label class="filter-item">
+                    <input
+                        type="radio"
+                        name="category"
+                        value="{{ category.slug }}"
+                        {% if category_slug == category.slug %}checked{% endif %}
+                    >
+
+                    <span>{{ category.name }}</span>
+                </label>
+            {% endfor %}
+        </form>
+    </div>
+
+    <!-- DANH SÁCH DỊCH VỤ -->
+    <div class="service-grid">
+        {% for service in services %}
+            <article class="service-card">
+
+                <!-- HÌNH ẢNH -->
+                <a
+                    href="{% url 'services:detail' service.slug %}"
+                    class="service-image"
+                    aria-label="Xem chi tiết {{ service.name }}"
+                >
+                    {% if service.image %}
+                        <img
+                            src="{{ service.image.url }}"
+                            alt="{{ service.name }}"
+                            loading="lazy"
+                        >
+                    {% else %}
+                        <div class="no-image">
+                            <span>Relax Spa</span>
+                            <strong>Chưa có hình ảnh</strong>
+                        </div>
+                    {% endif %}
+
+                    <div class="image-overlay"></div>
+
+                    <div class="duration-badge">
+                        <span class="clock-icon">◷</span>
+                        {{ service.duration_minutes }} phút
+                    </div>
+                </a>
+
+                <!-- NỘI DUNG -->
+                <div class="service-content">
+
+                    <div class="service-category">
+                        {{ service.category.name }}
+                    </div>
+
+                    <h2>
+                        <a href="{% url 'services:detail' service.slug %}">
+                            {{ service.name }}
+                        </a>
+                    </h2>
+
+                    <div class="rating-box">
+                        {% if service.average_rating %}
+                            <span class="stars">★★★★★</span>
+
+                            <strong>
+                                {{ service.average_rating|floatformat:1 }}
+                            </strong>
+
+                            <span class="review-count">
+                                {% if service.review_count %}
+                                    ({{ service.review_count }} đánh giá)
+                                {% else %}
+                                    (Chưa có đánh giá)
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="stars empty-stars">☆☆☆☆☆</span>
+                            <span class="review-count">Chưa có đánh giá</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="service-description">
+                        {{ service.description|truncatechars:115 }}
+                    </p>
+
+                    <div class="service-bottom">
+                        <div class="price-area">
+                            <span>Giá dịch vụ</span>
+
+                            <strong>
+                                {% if service.price_text %}
+                                    {{ service.price_text }}
+                                {% else %}
+                                    {{ service.price|floatformat:0 }} VND
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                        <a
+                            href="{% url 'services:detail' service.slug %}"
+                            class="detail-button"
+                        >
+                            <span>Xem chi tiết</span>
+                            <span class="button-arrow">→</span>
+                        </a>
+                    </div>
+                </div>
+
+            </article>
+        {% empty %}
+            <div class="empty-services">
+                <div class="empty-icon">♡</div>
+
+                <h2>Không tìm thấy dịch vụ</h2>
+
+                <p>
+                    Hiện chưa có dịch vụ phù hợp với lựa chọn của bạn.
+                    Hãy thử chọn một danh mục khác.
+                </p>
+
+                <a href="{% url 'services:list' %}">
+                    Xem tất cả dịch vụ
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('categoryFilterForm');
+        const radios = document.querySelectorAll(
+            '#categoryFilterForm input[name="category"]'
+        );
+
+        radios.forEach(function (radio) {
+            radio.addEventListener('mousedown', function () {
+                this.dataset.wasChecked = this.checked ? 'true' : 'false';
+            });
+
+            radio.addEventListener('click', function (event) {
+                const wasChecked = this.dataset.wasChecked === 'true';
+
+                if (wasChecked && this.value !== '') {
+                    event.preventDefault();
+
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.delete('category');
+
+                    window.location.href = currentUrl.toString();
+                    return;
+                }
+
+                if (form) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    /* =========================
+       KHUNG TRANG DỊCH VỤ
+    ========================== */
+
+    .services-page {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 48px 0 90px;
+    }
+
+    /* =========================
+       TIÊU ĐỀ
+    ========================== */
+
+    .services-heading {
+        max-width: 760px;
+        margin: 0 auto 38px;
+        text-align: center;
+    }
+
+    .heading-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        color: var(--accent, #c75b7a);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .heading-label span {
+        width: 35px;
+        height: 1px;
+        background: var(--accent, #c75b7a);
+    }
+
+    .services-heading h1 {
+        margin: 0;
+        color: var(--text, #30262a);
+        font-size: clamp(34px, 5vw, 52px);
+        line-height: 1.12;
+        font-weight: 900;
+        letter-spacing: -1.5px;
+    }
+
+    .services-heading p {
+        max-width: 650px;
+        margin: 18px auto 0;
+        color: var(--muted, #746b6f);
+        font-size: 16px;
+        line-height: 1.8;
+    }
+
+    /* =========================
+       BỘ LỌC DANH MỤC
+    ========================== */
+
+    .filter-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 42px;
+    }
+
+    .category-filter {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 8px;
+        background: #ffffff;
+        border: 1px solid rgba(199, 91, 122, 0.12);
+        border-radius: 999px;
+        box-shadow: 0 12px 35px rgba(69, 40, 49, 0.08);
+    }
+
+    .filter-item {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .filter-item input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .filter-item span {
+        min-height: 44px;
+        padding: 0 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        color: #74676c;
+        background: transparent;
+        font-size: 14px;
+        font-weight: 800;
+        white-space: nowrap;
+        transition:
+            color 0.25s ease,
+            background 0.25s ease,
+            transform 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+    .filter-item span:hover {
+        color: var(--accent, #c75b7a);
+        background: #fff3f7;
+    }
+
+    .filter-item input:checked + span {
+        color: #ffffff;
+        background: linear-gradient(135deg, #b84769, #d76989);
+        box-shadow: 0 10px 25px rgba(199, 91, 122, 0.3);
+    }
+
+    /* =========================
+       LƯỚI DỊCH VỤ
+    ========================== */
+
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px;
+        align-items: stretch;
+    }
+
+    /* =========================
+       THẺ DỊCH VỤ
+    ========================== */
+
+    .service-card {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 43% 57%;
+        min-height: 315px;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid rgba(199, 91, 122, 0.1);
+        border-radius: 26px;
+        box-shadow: 0 18px 55px rgba(76, 44, 55, 0.1);
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease,
+            border-color 0.3s ease;
+    }
+
+    .service-card:hover {
+        transform: translateY(-7px);
+        border-color: rgba(199, 91, 122, 0.22);
+        box-shadow: 0 28px 65px rgba(91, 48, 63, 0.16);
+    }
+
+    /* =========================
+       ẢNH DỊCH VỤ
+    ========================== */
+
+    .service-image {
+        position: relative;
+        min-height: 315px;
+        overflow: hidden;
+        display: block;
+        background: #f8ecef;
+    }
+
+    .service-image img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        transition: transform 0.55s ease;
+    }
+
+    .service-card:hover .service-image img {
+        transform: scale(1.06);
+    }
+
+    .image-overlay {
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(
+                to top,
+                rgba(30, 14, 20, 0.24),
+                transparent 50%
+            );
+        pointer-events: none;
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        min-height: 315px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background:
+            radial-gradient(
+                circle at top left,
+                rgba(255, 255, 255, 0.9),
+                transparent 42%
+            ),
+            linear-gradient(145deg, #f8dce5, #fff7fa);
+        color: #a4556d;
+        text-align: center;
+    }
+
+    .no-image span {
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .no-image strong {
+        font-size: 16px;
+    }
+
+    .duration-badge {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        min-height: 38px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #56474d;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 999px;
+        box-shadow: 0 9px 25px rgba(26, 12, 18, 0.14);
+        backdrop-filter: blur(12px);
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .clock-icon {
+        color: var(--accent, #c75b7a);
+        font-size: 17px;
+    }
+
+    /* =========================
+       NỘI DUNG THẺ
+    ========================== */
+
+    .service-content {
+        min-width: 0;
+        padding: 26px 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .service-category {
+        margin-bottom: 9px;
+        color: var(--accent, #c75b7a);
+        font-size: 11px;
+        line-height: 1.3;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .service-content h2 {
+        margin: 0 0 10px;
+        font-size: 24px;
+        line-height: 1.25;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+    }
+
+    .service-content h2 a {
+        color: var(--text, #30262a);
+        text-decoration: none;
+        transition: color 0.25s ease;
+    }
+
+    .service-content h2 a:hover {
+        color: var(--accent, #c75b7a);
+    }
+
+    /* =========================
+       ĐÁNH GIÁ
+    ========================== */
+
+    .rating-box {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 13px;
+    }
+
+    .stars {
+        color: #f4a51c;
+        font-size: 13px;
+        line-height: 1;
+        letter-spacing: 0.5px;
+    }
+
+    .empty-stars {
+        color: #cfc7ca;
+    }
+
+    .rating-box strong {
+        color: #453b3f;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .review-count {
+        color: var(--muted, #82777b);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    /* =========================
+       MÔ TẢ
+    ========================== */
+
+    .service-description {
+        display: -webkit-box;
+        min-height: 70px;
+        margin: 0 0 20px;
+        overflow: hidden;
+        color: var(--muted, #746b6f);
+        font-size: 14px;
+        line-height: 1.7;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+    }
+
+    /* =========================
+       GIÁ VÀ NÚT
+    ========================== */
+
+    .service-bottom {
+        margin-top: auto;
+        padding-top: 18px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 14px;
+        border-top: 1px solid rgba(199, 91, 122, 0.12);
+    }
+
+    .price-area span {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--muted, #817579);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .price-area strong {
+        display: block;
+        color: var(--accent, #c75b7a);
+        font-size: 20px;
+        line-height: 1.2;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .detail-button {
+        min-height: 43px;
+        padding: 0 16px 0 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #ffffff;
+        background: linear-gradient(135deg, #b84769, #d76989);
+        border-radius: 999px;
+        box-shadow: 0 10px 24px rgba(199, 91, 122, 0.25);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 900;
+        white-space: nowrap;
+        transition:
+            transform 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+    .detail-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 32px rgba(199, 91, 122, 0.36);
+    }
+
+    .button-arrow {
+        font-size: 18px;
+        line-height: 1;
+        transition: transform 0.25s ease;
+    }
+
+    .detail-button:hover .button-arrow {
+        transform: translateX(4px);
+    }
+
+    /* =========================
+       KHÔNG CÓ DỊCH VỤ
+    ========================== */
+
+    .empty-services {
+        grid-column: 1 / -1;
+        max-width: 620px;
+        margin: 10px auto;
+        padding: 55px 35px;
+        background: #ffffff;
+        border: 1px dashed rgba(199, 91, 122, 0.3);
+        border-radius: 28px;
+        box-shadow: 0 18px 50px rgba(76, 44, 55, 0.08);
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        background: linear-gradient(135deg, #b84769, #df7895);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(199, 91, 122, 0.28);
+        font-size: 34px;
+    }
+
+    .empty-services h2 {
+        margin: 0 0 10px;
+        color: var(--text, #30262a);
+        font-size: 27px;
+    }
+
+    .empty-services p {
+        max-width: 470px;
+        margin: 0 auto 22px;
+        color: var(--muted, #746b6f);
+        line-height: 1.7;
+    }
+
+    .empty-services a {
+        min-height: 46px;
+        padding: 0 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        background: var(--accent, #c75b7a);
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 900;
+    }
+
+    /* =========================
+       TABLET
+    ========================== */
+
+    @media (max-width: 1050px) {
+        .service-grid {
+            grid-template-columns: 1fr;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .service-card {
+            grid-template-columns: 40% 60%;
+        }
+    }
+
+    /* =========================
+       MOBILE
+    ========================== */
+
+    @media (max-width: 700px) {
+        .services-page {
+            width: min(100% - 24px, 1180px);
+            padding: 32px 0 65px;
+        }
+
+        .services-heading {
+            margin-bottom: 28px;
+        }
+
+        .services-heading h1 {
+            font-size: 34px;
+            letter-spacing: -0.8px;
+        }
+
+        .services-heading p {
+            font-size: 15px;
+        }
+
+        .filter-wrapper {
+            margin-bottom: 30px;
+        }
+
+        .category-filter {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 9px;
+            border-radius: 22px;
+        }
+
+        .filter-item span {
+            width: 100%;
+            min-height: 43px;
+            padding: 0 10px;
+            font-size: 13px;
+            white-space: normal;
+            text-align: center;
+        }
+
+        .service-card {
+            display: block;
+            min-height: 0;
+            border-radius: 24px;
+        }
+
+        .service-image,
+        .no-image {
+            min-height: 230px;
+            height: 230px;
+        }
+
+        .service-content {
+            padding: 23px 20px 22px;
+        }
+
+        .service-content h2 {
+            font-size: 24px;
+        }
+
+        .service-description {
+            min-height: 0;
+        }
+
+        .service-bottom {
+            align-items: center;
+        }
+    }
+
+    /* =========================
+       MOBILE NHỎ
+    ========================== */
+
+    @media (max-width: 430px) {
+        .category-filter {
+            grid-template-columns: 1fr;
+        }
+
+        .service-bottom {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .detail-button {
+            width: 100%;
+        }
+
+        .price-area strong {
+            font-size: 22px;
+        }
+    }
+</style>
+
+{% endblock %}
+

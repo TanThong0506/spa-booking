@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Spa Booking{% endblock %}</title>
+
+    <style>
+        :root {
+            --bg: #fff8fb;
+            --surface: #ffffff;
+            --text: #2b2b2b;
+            --muted: #666666;
+            --accent: #c75b7a;
+            --accent-strong: #a84363;
+            --border: rgba(199, 91, 122, 0.14);
+            --shadow: 0 14px 38px rgba(199, 91, 122, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--text);
+            background: linear-gradient(180deg, #fff8fb 0%, #fff 45%, #fff 100%);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* HEADER */
+        .site-header {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            width: 100%;
+            padding: 18px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+        }
+
+        .brand {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            color: var(--accent);
+            white-space: nowrap;
+            line-height: 1.15;
+        }
+
+        .nav-links {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 22px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .nav-links > a {
+            white-space: nowrap;
+            transition: 0.2s ease;
+        }
+
+        .nav-links > a:hover {
+            color: var(--accent);
+        }
+
+        /* SEARCH */
+        .nav-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 12px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            margin: 0;
+            width: 360px;
+            max-width: 360px;
+        }
+
+        .nav-search input {
+            width: 100%;
+            height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0 18px;
+            font: inherit;
+            outline: none;
+            background: white;
+            color: var(--text);
+        }
+
+        .nav-search input::placeholder {
+            color: #888;
+            font-weight: 600;
+        }
+
+        .nav-search input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(199, 91, 122, 0.12);
+        }
+
+        .nav-search button {
+            height: 44px;
+            min-width: 60px;
+            border: none;
+            border-radius: 999px;
+            background: var(--accent);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .nav-search button:hover {
+            background: var(--accent-strong);
+            transform: translateY(-1px);
+        }
+
+        /* BUTTON */
+        .btn,
+        .btn-card,
+        .btn-outline,
+        .btn-login {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 20px;
+            border-radius: 999px;
+            font-weight: 800;
+            transition: 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn,
+        .btn-card {
+            background: var(--accent);
+            color: white;
+            border: 1px solid var(--accent);
+        }
+
+        .btn:hover,
+        .btn-card:hover {
+            background: var(--accent-strong);
+            border-color: var(--accent-strong);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-login {
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: rgba(199, 91, 122, 0.06);
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .btn-login:hover {
+            background: rgba(199, 91, 122, 0.14);
+            color: var(--accent-strong);
+        }
+
+        .logout-form {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            display: inline-flex;
+        }
+
+        .logout-form button {
+            border: 1px solid var(--accent);
+            cursor: pointer;
+        }
+
+        .user-greeting {
+            color: var(--muted);
+            white-space: nowrap;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-greeting strong {
+            color: var(--text);
+        }
+
+        /* MAIN */
+        .page-shell {
+            width: min(1200px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 30px 0 60px;
+            min-height: 650px;
+        }
+
+        /* FORM CARD */
+        .form-card {
+            background: white;
+            padding: 28px;
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            max-width: 520px;
+            margin: 30px auto;
+        }
+
+        .form-card input,
+        .form-card select,
+        .form-card textarea {
+            width: 100%;
+            padding: 13px 14px;
+            margin: 8px 0 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .form-card input:focus,
+        .form-card select:focus,
+        .form-card textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(199, 91, 122, 0.12);
+        }
+
+        /* FOOTER */
+        .site-footer {
+            background: linear-gradient(135deg, #fff1f5, #ffffff);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+            color: var(--text);
+        }
+
+        .footer-inner {
+            width: min(1200px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 55px 0 28px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr 1fr;
+            gap: 34px;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent);
+            font-size: 26px;
+            font-weight: 900;
+        }
+
+        .footer-logo-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: #ffe3eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 10px 25px rgba(199, 91, 122, 0.16);
+        }
+
+        .footer-desc {
+            color: var(--muted);
+            line-height: 1.8;
+            max-width: 360px;
+            margin: 0;
+        }
+
+        .footer-col h3 {
+            color: var(--accent);
+            font-size: 18px;
+            margin: 0 0 18px;
+            font-weight: 900;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 12px;
+        }
+
+        .footer-col li,
+        .footer-col a {
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .footer-col a:hover {
+            color: var(--accent);
+        }
+
+        .footer-contact-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .footer-social a {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-weight: 900;
+            box-shadow: 0 8px 20px rgba(199, 91, 122, 0.10);
+            transition: 0.2s ease;
+        }
+
+        .footer-social a:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            margin-top: 38px;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .footer-bottom strong {
+            color: var(--accent);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .header-inner {
+                padding: 18px 30px;
+                gap: 22px;
+            }
+
+            .nav-links {
+                gap: 16px;
+            }
+
+            .nav-search {
+                width: 320px;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .header-inner {
+                flex-direction: column;
+                align-items: center;
+                padding: 18px 24px;
+            }
+
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 14px;
+            }
+
+            .nav-search {
+                order: 10;
+                width: min(100%, 420px);
+                max-width: 420px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .brand {
+                font-size: 24px;
+            }
+
+            .nav-links {
+                gap: 10px;
+                font-size: 14px;
+            }
+
+            .nav-search {
+                padding: 10px;
+                border-radius: 20px;
+            }
+
+            .nav-search input {
+                height: 42px;
+            }
+
+            .nav-search button {
+                height: 42px;
+                min-width: 56px;
+            }
+
+            .page-shell {
+                width: min(100% - 20px, 1200px);
+                padding-top: 22px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-logo {
+                justify-content: center;
+            }
+
+            .footer-desc {
+                text-align: center;
+                margin: 0 auto;
+            }
+
+            .footer-social {
+                justify-content: center;
+            }
+
+            .footer-col {
+                text-align: center;
+            }
+
+            .footer-contact-item {
+                justify-content: center;
+            }
+        }
+    </style>
+
+    {% block extra_css %}
+    {% endblock %}
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{% url 'home' %}">
+                Relax Spa
+            </a>
+
+            <nav class="nav-links">
+                <a href="{% url 'home' %}">Trang chủ</a>
+                <a href="{% url 'services:list' %}">Dịch vụ</a>
+                <a href="{% url 'booking:form' %}">Đặt lịch</a>
+
+                <form class="nav-search" action="{% url 'services:list' %}" method="get">
+                    <input
+                        type="search"
+                        name="q"
+                        value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}"
+                        placeholder="Tìm dịch vụ"
+                        aria-label="Tìm kiếm dịch vụ"
+                    >
+
+                    {% if request.GET.category %}
+                        <input type="hidden" name="category" value="{{ request.GET.category }}">
+                    {% endif %}
+
+                    <button type="submit">Tìm</button>
+                </form>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'booking:mine' %}">Dịch vụ của tôi</a>
+
+                    <span class="user-greeting">
+                        Chào mừng,
+                        <strong>
+                            {% if user.profile.name %}
+                                {{ user.profile.name }}
+                            {% else %}
+                                Khách hàng
+                            {% endif %}
+                        </strong>
+                    </span>
+
+                    <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-login">Đăng xuất</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn-login">Đăng nhập</a>
+                {% endif %}
+
+
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-grid">
+
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon">🌸</div>
+                        <span>Spa Booking</span>
+                    </div>
+
+                    <p class="footer-desc">
+                        Spa Booking mang đến trải nghiệm đặt lịch spa trực tuyến nhanh chóng,
+                        giúp khách hàng dễ dàng lựa chọn dịch vụ chăm sóc sắc đẹp và thư giãn.
+                    </p>
+
+                    <div class="footer-social">
+                        <a href="https://www.facebook.com/le.tan.thong.364960" title="Facebook">f</a>
+                        <a href="https://www.instagram.com/" title="Instagram">ig</a>
+                        <a href="#" title="TikTok">tt</a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Liên kết nhanh</h3>
+                    <ul>
+                        <li><a href="{% url 'home' %}">Trang chủ</a></li>
+                        <li><a href="{% url 'services:list' %}">Dịch vụ</a></li>
+                        <li><a href="{% url 'booking:form' %}">Đặt lịch</a></li>
+                        <li><a href="/admin/">Quản trị</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Dịch vụ nổi bật</h3>
+                    <ul>
+                        <li>Massage thư giãn</li>
+                        <li>Chăm sóc da mặt</li>
+                        <li>Gội đầu dưỡng sinh</li>
+                        <li>Body Spa</li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Thông tin liên hệ</h3>
+
+                    <div class="footer-contact-item">
+                        <span>📍</span>
+                        <span>87 Nguyễn Sơn, Hòa Cường Nam , Hải Châu , Đà Nẵng</span>
+                    </div>
+
+                    <div class="footer-contact-item">
+                        <span>📞</span>
+                        <span>036 826 6780</span>
+                    </div>
+
+                    <div class="footer-contact-item">
+                        <span>✉️</span>
+                        <span>thong_2251220034@dau.edu.vn</span>
+                    </div>
+
+                    <div class="footer-contact-item">
+                        <span>⏰</span>
+                        <span>08:00 - 21:00, Thứ 2 - Chủ nhật</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="footer-bottom">
+                <span>© 2026 <strong>Spa Booking</strong>. All rights reserved.</span>
+                <span>Website đặt lịch spa trực tuyến</span>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

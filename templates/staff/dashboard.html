@@ -1,0 +1,365 @@
+{% extends 'staff/base_staff.html' %}
+
+{% block title %}Lịch phục vụ - Spa Booking{% endblock %}
+
+{% block content %}
+
+<section class="staff-title">
+    <p>Xin chào, {{ request.user.get_full_name|default:request.user.username }}</p>
+    <h1>Lịch phục vụ của bạn</h1>
+    <span>Xem lịch được admin phân công và cập nhật tình trạng phục vụ.</span>
+</section>
+
+<section class="stat-grid">
+    <div class="stat-card">
+        <span>Sẵn sàng</span>
+        <strong>{{ ready_count }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Đang phục vụ</span>
+        <strong>{{ serving_count }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Đã phục vụ</span>
+        <strong>{{ done_count }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>Từ chối</span>
+        <strong>{{ rejected_count }}</strong>
+    </div>
+</section>
+
+<section class="booking-list">
+    {% for booking in bookings %}
+        <article class="booking-card">
+            <div class="booking-top">
+                <div>
+                    <p>Dịch vụ</p>
+                    <h3>{{ booking.service.name }}</h3>
+                </div>
+
+                <span class="service-status status-{{ booking.staff_service_status }}">
+                    {{ booking.get_staff_service_status_display }}
+                </span>
+            </div>
+
+            <div class="info-grid">
+                <div>
+                    <span>Khách hàng</span>
+                    <strong>{{ booking.full_name }}</strong>
+                </div>
+
+                <div>
+                    <span>Số điện thoại</span>
+                    <strong>{{ booking.phone }}</strong>
+                </div>
+
+                <div>
+                    <span>Ngày đặt</span>
+                    <strong>{{ booking.booking_date }}</strong>
+                </div>
+
+                <div>
+                    <span>Giờ đặt</span>
+                    <strong>{{ booking.booking_time }}</strong>
+                </div>
+
+                <div>
+                    <span>Thanh toán</span>
+                    <strong>{{ booking.get_payment_method_display }}</strong>
+                </div>
+
+                <div>
+                    <span>Trạng thái admin</span>
+                    <strong>{{ booking.get_status_display }}</strong>
+                </div>
+            </div>
+
+            {% if booking.addons.all %}
+                <div class="note-box">
+                    <strong>Dịch vụ thêm:</strong>
+                    {% for addon in booking.addons.all %}
+                        {{ addon.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if booking.note %}
+                <div class="note-box">
+                    <strong>Ghi chú:</strong>
+                    <p>{{ booking.note }}</p>
+                </div>
+            {% endif %}
+
+            {% if booking.staff_reject_reason %}
+                <div class="reject-box">
+                    <strong>Lý do từ chối:</strong>
+                    <p>{{ booking.staff_reject_reason }}</p>
+                </div>
+            {% endif %}
+
+            <div class="action-row">
+                {% if booking.staff_service_status == 'ready' %}
+                    <a href="{% url 'staff:start_service' booking.id %}" class="btn">
+                        Bắt đầu phục vụ
+                    </a>
+
+                    <a href="{% url 'staff:reject_service' booking.id %}" class="btn-outline danger-text">
+                        Từ chối phục vụ
+                    </a>
+                {% elif booking.staff_service_status == 'serving' %}
+                    <a href="{% url 'staff:complete_service' booking.id %}" class="btn">
+                        Phục vụ thành công
+                    </a>
+                {% elif booking.staff_service_status == 'done' %}
+                    <span class="done-text">Đã hoàn tất phục vụ</span>
+                {% elif booking.staff_service_status == 'rejected' %}
+                    <span class="reject-text">Đã từ chối phục vụ</span>
+                {% endif %}
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-box">
+            <h3>Chưa có lịch phục vụ</h3>
+            <p>Hiện tại admin chưa phân công lịch nào cho bạn.</p>
+        </div>
+    {% endfor %}
+</section>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .staff-title {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .staff-title p {
+        color: var(--accent);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+    }
+
+    .staff-title h1 {
+        font-size: 38px;
+        margin: 0 0 10px;
+    }
+
+    .staff-title span {
+        color: var(--muted);
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 26px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 12px 30px rgba(199, 91, 122, 0.08);
+    }
+
+    .stat-card span {
+        color: var(--muted);
+        font-weight: 800;
+    }
+
+    .stat-card strong {
+        display: block;
+        color: var(--accent);
+        font-size: 34px;
+        margin-top: 8px;
+    }
+
+    .booking-list {
+        display: grid;
+        gap: 20px;
+    }
+
+    .booking-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 26px;
+        padding: 26px;
+        box-shadow: 0 14px 38px rgba(199, 91, 122, 0.10);
+    }
+
+    .booking-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .booking-top p {
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        margin: 0 0 8px;
+    }
+
+    .booking-top h3 {
+        margin: 0;
+        font-size: 26px;
+    }
+
+    .service-status {
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .status-ready {
+        background: #fff8e6;
+        color: #b7791f;
+    }
+
+    .status-serving {
+        background: #e9f8ff;
+        color: #1976a3;
+    }
+
+    .status-done {
+        background: #eafaf0;
+        color: #217a3b;
+    }
+
+    .status-rejected {
+        background: #fff0f0;
+        color: #c0392b;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .info-grid div,
+    .note-box,
+    .reject-box {
+        background: #fff8fb;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 15px;
+    }
+
+    .info-grid span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .info-grid strong {
+        color: var(--accent);
+    }
+
+    .note-box,
+    .reject-box {
+        margin-top: 14px;
+        color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .note-box strong {
+        color: var(--accent);
+    }
+
+    .reject-box {
+        background: #fff0f0;
+        color: #c0392b;
+    }
+
+    .reject-box strong {
+        color: #c0392b;
+    }
+
+    .reject-box p,
+    .note-box p {
+        margin: 8px 0 0;
+    }
+
+    .action-row {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .danger-text {
+        color: #c0392b;
+    }
+
+    .done-text {
+        color: #217a3b;
+        font-weight: 900;
+    }
+
+    .reject-text {
+        color: #c0392b;
+        font-weight: 900;
+    }
+
+    .empty-box {
+        background: white;
+        text-align: center;
+        border-radius: 26px;
+        padding: 46px;
+        box-shadow: 0 14px 38px rgba(199, 91, 122, 0.10);
+    }
+
+    .empty-box h3 {
+        color: var(--accent);
+        margin-top: 0;
+    }
+
+    .empty-box p {
+        color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+        .stat-grid,
+        .info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .booking-top {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .stat-grid,
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-row {
+            justify-content: stretch;
+        }
+
+        .action-row a,
+        .action-row .btn,
+        .action-row .btn-outline {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

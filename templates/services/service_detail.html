@@ -1,0 +1,1538 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service.name }} - Spa Booking{% endblock %}
+
+{% block content %}
+
+<section class="detail-page">
+
+
+<div class="breadcrumb">
+    <a href="{% url 'home' %}">Trang chủ</a>
+    <span>/</span>
+    <a href="{% url 'services:list' %}">Dịch vụ</a>
+    <span>/</span>
+    <strong>{{ service.name }}</strong>
+</div>
+
+<section class="vip-detail-hero">
+    <div class="vip-gallery">
+        <div class="gallery-glow"></div>
+
+        <div class="main-photo-card">
+            {% if service.image %}
+                <img class="main-preview" src="{{ service.image.url }}" alt="{{ service.name }}">
+            {% else %}
+                <div class="empty-main-photo">
+                    Chưa có ảnh đại diện dịch vụ
+                </div>
+            {% endif %}
+
+            <div class="photo-dark-layer"></div>
+
+            <div class="photo-badge">
+                <span>Luxury Spa</span>
+                <strong>Premium Service</strong>
+            </div>
+
+            <div class="photo-title">
+                <p>Relax • Beauty • Wellness</p>
+                <h1>{{ service.name }}</h1>
+            </div>
+
+            {% if service.image %}
+                <button type="button" class="open-photo-btn" id="openImageBtn">
+                    Xem ảnh lớn
+                </button>
+            {% endif %}
+        </div>
+
+        <div class="sub-photo-list">
+            {% if service.image %}
+                <button type="button" class="sub-photo active" data-src="{{ service.image.url }}">
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                </button>
+            {% endif %}
+
+            {% for image in service.images.all %}
+                <button type="button" class="sub-photo" data-src="{{ image.image.url }}">
+                    <img src="{{ image.image.url }}" alt="{{ service.name }}">
+                </button>
+            {% empty %}
+                {% if service.image %}
+                    <div class="sub-photo-empty">
+                        Thêm ảnh phụ trong Admin để gallery đẹp hơn.
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="service-info-panel">
+        <p class="small-title">Chi tiết dịch vụ</p>
+
+        <h2>{{ service.name }}</h2>
+
+        <div class="rating-row">
+            <span class="stars">★★★★★</span>
+
+            <strong>
+                {% if average_rating %}
+                    {{ average_rating|floatformat:1 }}/5
+                {% else %}
+                    0.0/5
+                {% endif %}
+            </strong>
+
+            <span>
+                {% if reviews %}
+                    {{ reviews|length }} đánh giá
+                {% else %}
+                    Chưa có đánh giá
+                {% endif %}
+            </span>
+        </div>
+
+        <p class="service-desc">
+            {{ service.description }}
+        </p>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span>Thời gian</span>
+                <strong>{{ service.duration_minutes }} phút</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Danh mục</span>
+                <strong>{{ service.category.name }}</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Tình trạng</span>
+                <strong>Còn phục vụ</strong>
+            </div>
+        </div>
+
+        <div class="price-card">
+            <span>Giá dịch vụ</span>
+
+            <strong>
+                {% if service.price_text %}
+                    {{ service.price_text }}
+                {% else %}
+                    {{ service.price|floatformat:0 }} VND
+                {% endif %}
+            </strong>
+
+            <p>Giá có thể thay đổi nếu khách hàng chọn thêm dịch vụ đi kèm.</p>
+        </div>
+
+        <div class="action-box">
+            {% if user.is_authenticated %}
+                <a href="{% url 'booking:form' %}?service_id={{ service.id }}" class="booking-action-btn">
+                    Đặt lịch ngay
+                </a>
+            {% else %}
+                <button type="button" class="booking-action-btn" id="showLoginWarning">
+                    Đặt lịch ngay
+                </button>
+            {% endif %}
+
+            <a href="{% url 'services:list' %}" class="other-action-btn">
+                Xem dịch vụ khác
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="extra-gallery-section">
+    <div class="center-heading">
+        <p>Hình ảnh phụ</p>
+        <h2>Bộ sưu tập hình ảnh chi tiết</h2>
+        <span>Khách hàng có thể xem rõ không gian, quy trình và trải nghiệm dịch vụ.</span>
+    </div>
+
+    <div class="extra-gallery-grid">
+        {% if service.image %}
+            <button type="button" class="extra-photo big-photo" data-src="{{ service.image.url }}">
+                <img src="{{ service.image.url }}" alt="{{ service.name }}">
+
+                <div class="extra-caption">
+                    <strong>{{ service.name }}</strong>
+                    <span>Ảnh đại diện dịch vụ</span>
+                </div>
+            </button>
+        {% endif %}
+
+        {% for image in service.images.all %}
+            <button type="button" class="extra-photo" data-src="{{ image.image.url }}">
+                <img src="{{ image.image.url }}" alt="{{ service.name }}">
+
+                <div class="extra-caption">
+                    <strong>
+                        {% if image.caption %}
+                            {{ image.caption }}
+                        {% else %}
+                            Ảnh phụ dịch vụ
+                        {% endif %}
+                    </strong>
+                    <span>Nhấn để xem ảnh lớn</span>
+                </div>
+            </button>
+        {% empty %}
+            {% if not service.image %}
+                <div class="gallery-empty">
+                    Chưa có hình ảnh cho dịch vụ này.
+                </div>
+            {% else %}
+                <div class="gallery-empty">
+                    Dịch vụ này chưa có ảnh phụ. Vào Admin thêm ảnh phụ tại mục Service Images.
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>
+
+<section class="luxury-benefits">
+    <div class="benefit-card">
+        <span>01</span>
+        <h3>Không gian thư giãn</h3>
+        <p>Không gian nhẹ nhàng, riêng tư và sạch sẽ, tạo cảm giác thoải mái khi sử dụng dịch vụ.</p>
+    </div>
+
+    <div class="benefit-card">
+        <span>02</span>
+        <h3>Quy trình chuyên nghiệp</h3>
+        <p>Dịch vụ được thực hiện theo quy trình rõ ràng, giúp khách hàng yên tâm trải nghiệm.</p>
+    </div>
+
+    <div class="benefit-card">
+        <span>03</span>
+        <h3>Đặt lịch tiện lợi</h3>
+        <p>Khách hàng có thể chọn dịch vụ, thời gian và gửi yêu cầu đặt lịch trực tuyến nhanh chóng.</p>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="content-box">
+        <p class="section-mini">Thông tin</p>
+        <h2>Mô tả chi tiết</h2>
+
+        <p>
+            Dịch vụ {{ service.name }} phù hợp với khách hàng mong muốn thư giãn,
+            chăm sóc sức khỏe và cải thiện tinh thần sau thời gian học tập, làm việc căng thẳng.
+        </p>
+
+        <p>
+            Sau khi đặt lịch, hệ thống sẽ ghi nhận thông tin và quản trị viên sẽ xác nhận lịch hẹn.
+            Khách hàng có thể theo dõi trạng thái lịch trong tài khoản cá nhân.
+        </p>
+    </div>
+
+    <div class="content-box note-box">
+        <p class="section-mini">Lưu ý</p>
+        <h2>Khi đặt lịch</h2>
+
+        <ul>
+            <li>Nên đặt lịch trước để spa sắp xếp thời gian phục vụ.</li>
+            <li>Vui lòng nhập đúng số điện thoại để tiện liên hệ xác nhận.</li>
+            <li>Có thể xem lại lịch đã đặt trong mục “Dịch vụ của tôi”.</li>
+            <li>Nếu cần hủy lịch, vui lòng thao tác trước thời gian phục vụ.</li>
+        </ul>
+    </div>
+</section>
+
+{% if service.addons.all %}
+    <section class="addon-section">
+        <div class="center-heading">
+            <p>Dịch vụ thêm</p>
+            <h2>Nâng cấp trải nghiệm của bạn</h2>
+        </div>
+
+        <div class="addon-grid">
+            {% for addon in service.addons.all %}
+                <div class="addon-card">
+                    <h3>{{ addon.name }}</h3>
+
+                    <p>
+                        {% if addon.description %}
+                            {{ addon.description }}
+                        {% else %}
+                            Dịch vụ thêm giúp trải nghiệm chăm sóc được trọn vẹn hơn.
+                        {% endif %}
+                    </p>
+
+                    <strong>
+                        {% if addon.price %}
+                            +{{ addon.price|floatformat:0 }} VND
+                        {% else %}
+                            Miễn phí
+                        {% endif %}
+                    </strong>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+
+<section class="review-section">
+    <div class="center-heading">
+        <p>Đánh giá</p>
+        <h2>Cảm nhận của khách hàng</h2>
+    </div>
+
+    <div class="review-grid">
+        {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-top">
+                    <div class="avatar">
+                        {% if review.user.get_full_name %}
+                            {{ review.user.get_full_name|first|upper }}
+                        {% elif review.user.first_name %}
+                            {{ review.user.first_name|first|upper }}
+                        {% else %}
+                            K
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <h3>
+                            {% if review.user.get_full_name %}
+                                {{ review.user.get_full_name }}
+                            {% elif review.user.first_name %}
+                                {{ review.user.first_name }}
+                            {% else %}
+                                Khách hàng
+                            {% endif %}
+                        </h3>
+
+                        <span>{{ review.created_at|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="review-stars">
+                    {% if review.rating == 5 %}
+                        ★★★★★
+                    {% elif review.rating == 4 %}
+                        ★★★★☆
+                    {% elif review.rating == 3 %}
+                        ★★★☆☆
+                    {% elif review.rating == 2 %}
+                        ★★☆☆☆
+                    {% else %}
+                        ★☆☆☆☆
+                    {% endif %}
+                </div>
+
+                <p>
+                    {% if review.comment %}
+                        {{ review.comment }}
+                    {% else %}
+                        Khách hàng chưa để lại nội dung đánh giá.
+                    {% endif %}
+                </p>
+            </div>
+        {% empty %}
+            <div class="empty-review">
+                Chưa có đánh giá nào cho dịch vụ này.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+</section>
+
+<div class="image-modal" id="imageModal">
+    <button type="button" class="close-modal" id="closeImageBtn">×</button>
+
+
+<button type="button" class="modal-nav modal-prev" id="prevImageBtn">‹</button>
+<img id="modalImage" src="" alt="{{ service.name }}">
+<button type="button" class="modal-nav modal-next" id="nextImageBtn">›</button>
+
+<div class="modal-counter" id="modalCounter">1 / 1</div>
+
+</div>
+
+<div class="login-warning-box" id="loginWarningBox">
+    <div class="login-warning-content">
+        <button type="button" class="close-warning-btn" id="closeLoginWarning">×</button>
+
+
+    <div class="warning-icon">!</div>
+
+    <h3>Bạn chưa đăng nhập</h3>
+
+    <p>
+        Vui lòng đăng nhập để có thể đặt lịch dịch vụ này.
+    </p>
+
+    <div class="login-warning-actions">
+        <a href="{% url 'accounts:login' %}" class="login-now-btn">
+            Đăng nhập ngay
+        </a>
+
+        <button type="button" class="cancel-warning-btn" id="cancelLoginWarning">
+            Để sau
+        </button>
+    </div>
+</div>
+
+
+</div>
+
+<script>
+    const mainPreview = document.querySelector('.main-preview');
+    const modalImage = document.getElementById('modalImage');
+    const imageModal = document.getElementById('imageModal');
+    const openImageBtn = document.getElementById('openImageBtn');
+    const closeImageBtn = document.getElementById('closeImageBtn');
+    const prevImageBtn = document.getElementById('prevImageBtn');
+    const nextImageBtn = document.getElementById('nextImageBtn');
+    const modalCounter = document.getElementById('modalCounter');
+
+    const subPhotos = document.querySelectorAll('.sub-photo');
+    const extraPhotos = document.querySelectorAll('.extra-photo');
+
+    let imageSources = [];
+    let currentImageIndex = 0;
+
+    document.querySelectorAll('[data-src]').forEach(function(item) {
+        const src = item.getAttribute('data-src');
+
+        if (src && !imageSources.includes(src)) {
+            imageSources.push(src);
+        }
+    });
+
+    function updateModalImage(index) {
+        if (!imageSources.length || !modalImage) {
+            return;
+        }
+
+        if (index < 0) {
+            currentImageIndex = imageSources.length - 1;
+        } else if (index >= imageSources.length) {
+            currentImageIndex = 0;
+        } else {
+            currentImageIndex = index;
+        }
+
+        modalImage.src = imageSources[currentImageIndex];
+
+        if (modalCounter) {
+            modalCounter.innerText = (currentImageIndex + 1) + ' / ' + imageSources.length;
+        }
+    }
+
+    function openModalBySrc(src) {
+        const index = imageSources.indexOf(src);
+
+        if (index >= 0) {
+            updateModalImage(index);
+        } else {
+            updateModalImage(0);
+        }
+
+        if (imageModal) {
+            imageModal.classList.add('show');
+        }
+    }
+
+    subPhotos.forEach(function(photo) {
+        photo.addEventListener('click', function() {
+            const src = this.getAttribute('data-src');
+
+            if (mainPreview && src) {
+                mainPreview.src = src;
+            }
+
+            subPhotos.forEach(function(item) {
+                item.classList.remove('active');
+            });
+
+            this.classList.add('active');
+        });
+    });
+
+    extraPhotos.forEach(function(photo) {
+        photo.addEventListener('click', function() {
+            const src = this.getAttribute('data-src');
+
+            if (src) {
+                openModalBySrc(src);
+            }
+        });
+    });
+
+    if (openImageBtn) {
+        openImageBtn.addEventListener('click', function() {
+            const currentSrc = mainPreview ? mainPreview.src : imageSources[0];
+
+            if (currentSrc) {
+                openModalBySrc(currentSrc);
+            }
+        });
+    }
+
+    if (closeImageBtn && imageModal) {
+        closeImageBtn.addEventListener('click', function() {
+            imageModal.classList.remove('show');
+        });
+    }
+
+    if (prevImageBtn) {
+        prevImageBtn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            updateModalImage(currentImageIndex - 1);
+        });
+    }
+
+    if (nextImageBtn) {
+        nextImageBtn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            updateModalImage(currentImageIndex + 1);
+        });
+    }
+
+    if (imageModal) {
+        imageModal.addEventListener('click', function(event) {
+            if (event.target === imageModal) {
+                imageModal.classList.remove('show');
+            }
+        });
+    }
+
+    const showLoginWarning = document.getElementById('showLoginWarning');
+    const loginWarningBox = document.getElementById('loginWarningBox');
+    const closeLoginWarning = document.getElementById('closeLoginWarning');
+    const cancelLoginWarning = document.getElementById('cancelLoginWarning');
+
+    if (showLoginWarning && loginWarningBox) {
+        showLoginWarning.addEventListener('click', function() {
+            loginWarningBox.classList.add('show');
+        });
+    }
+
+    if (closeLoginWarning && loginWarningBox) {
+        closeLoginWarning.addEventListener('click', function() {
+            loginWarningBox.classList.remove('show');
+        });
+    }
+
+    if (cancelLoginWarning && loginWarningBox) {
+        cancelLoginWarning.addEventListener('click', function() {
+            loginWarningBox.classList.remove('show');
+        });
+    }
+
+    if (loginWarningBox) {
+        loginWarningBox.addEventListener('click', function(event) {
+            if (event.target === loginWarningBox) {
+                loginWarningBox.classList.remove('show');
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            if (imageModal && imageModal.classList.contains('show')) {
+                imageModal.classList.remove('show');
+            }
+
+            if (loginWarningBox && loginWarningBox.classList.contains('show')) {
+                loginWarningBox.classList.remove('show');
+            }
+        }
+
+        if (!imageModal || !imageModal.classList.contains('show')) {
+            return;
+        }
+
+        if (event.key === 'ArrowLeft') {
+            updateModalImage(currentImageIndex - 1);
+        }
+
+        if (event.key === 'ArrowRight') {
+            updateModalImage(currentImageIndex + 1);
+        }
+    });
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .detail-page {
+        padding: 20px 0 90px;
+        position: relative;
+    }
+
+    .detail-page::before {
+        content: '';
+        position: fixed;
+        width: 520px;
+        height: 520px;
+        right: -220px;
+        top: 70px;
+        background: radial-gradient(circle, rgba(199, 91, 122, 0.22), transparent 70%);
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .breadcrumb a {
+        color: var(--accent);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .breadcrumb strong {
+        color: var(--text);
+    }
+
+    .vip-detail-hero {
+        display: grid;
+        grid-template-columns: 1.18fr 0.82fr;
+        gap: 40px;
+        align-items: stretch;
+    }
+
+    .vip-gallery {
+        position: relative;
+    }
+
+    .gallery-glow {
+        position: absolute;
+        inset: 35px;
+        background: linear-gradient(135deg, rgba(199, 91, 122, 0.46), rgba(255, 214, 226, 0.24));
+        filter: blur(52px);
+        border-radius: 48px;
+        z-index: 0;
+    }
+
+    .main-photo-card {
+        position: relative;
+        height: 700px;
+        border-radius: 52px;
+        overflow: hidden;
+        background: #fff1f5;
+        box-shadow: 0 42px 110px rgba(199, 91, 122, 0.34);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        z-index: 1;
+    }
+
+    .main-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scale(1.01);
+        transition: 0.6s ease;
+    }
+
+    .main-photo-card:hover .main-preview {
+        transform: scale(1.08);
+    }
+
+    .empty-main-photo {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-weight: 900;
+        font-size: 20px;
+        background: linear-gradient(145deg, #ffe3eb, #ffffff);
+    }
+
+    .photo-dark-layer {
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(to top, rgba(20, 8, 13, 0.82), transparent 48%),
+            linear-gradient(to right, rgba(20, 8, 13, 0.28), transparent 52%);
+        pointer-events: none;
+    }
+
+    .photo-badge {
+        position: absolute;
+        z-index: 4;
+        top: 30px;
+        left: 30px;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        border-radius: 999px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+    }
+
+    .photo-badge span {
+        display: block;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .photo-badge strong {
+        color: var(--text);
+        font-size: 14px;
+    }
+
+    .photo-title {
+        position: absolute;
+        z-index: 4;
+        left: 38px;
+        right: 38px;
+        bottom: 36px;
+        color: white;
+        padding-right: 150px;
+    }
+
+    .photo-title p {
+        margin: 0 0 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 12px;
+        font-weight: 900;
+        opacity: 0.9;
+    }
+
+    .photo-title h1 {
+        margin: 0;
+        font-size: 46px;
+        line-height: 1.08;
+        max-width: 640px;
+        text-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .open-photo-btn {
+        position: absolute;
+        z-index: 5;
+        right: 34px;
+        bottom: 36px;
+        border: none;
+        min-height: 50px;
+        padding: 0 24px;
+        border-radius: 999px;
+        color: var(--accent);
+        background: white;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
+        white-space: nowrap;
+        transition: 0.25s;
+    }
+
+    .open-photo-btn:hover {
+        transform: translateY(-4px);
+    }
+
+    .sub-photo-list {
+        position: relative;
+        z-index: 2;
+        margin-top: -52px;
+        padding: 0 34px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .sub-photo {
+        height: 122px;
+        padding: 0;
+        border-radius: 28px;
+        border: 3px solid rgba(255, 255, 255, 0.82);
+        overflow: hidden;
+        background: white;
+        cursor: pointer;
+        box-shadow: 0 18px 44px rgba(199, 91, 122, 0.25);
+        transition: 0.25s;
+    }
+
+    .sub-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .sub-photo:hover,
+    .sub-photo.active {
+        transform: translateY(-9px);
+        border-color: var(--accent);
+    }
+
+    .sub-photo-empty {
+        grid-column: 1 / -1;
+        background: white;
+        border: 1px dashed rgba(199, 91, 122, 0.25);
+        border-radius: 24px;
+        padding: 22px;
+        color: var(--muted);
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .service-info-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: 46px;
+        padding: 44px;
+        background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,248,251,0.92));
+        border: 1px solid rgba(199, 91, 122, 0.15);
+        box-shadow: 0 32px 85px rgba(199, 91, 122, 0.17);
+        backdrop-filter: blur(18px);
+    }
+
+    .service-info-panel::before,
+    .service-info-panel::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .service-info-panel::before {
+        width: 340px;
+        height: 340px;
+        right: -150px;
+        top: -130px;
+        background: radial-gradient(circle, rgba(199, 91, 122, 0.18), transparent 70%);
+    }
+
+    .service-info-panel::after {
+        width: 280px;
+        height: 280px;
+        left: -130px;
+        bottom: -130px;
+        background: radial-gradient(circle, rgba(255, 214, 226, 0.9), transparent 70%);
+    }
+
+    .small-title {
+        position: relative;
+        z-index: 1;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 950;
+        margin: 0 0 12px;
+    }
+
+    .service-info-panel h2 {
+        position: relative;
+        z-index: 1;
+        font-size: 48px;
+        line-height: 1.1;
+        margin: 0 0 18px;
+        color: var(--text);
+        letter-spacing: -1px;
+    }
+
+    .rating-row {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        background: rgba(255,255,255,0.76);
+        border: 1px solid rgba(199, 91, 122, 0.14);
+        border-radius: 999px;
+        padding: 10px 16px;
+        width: fit-content;
+    }
+
+    .stars,
+    .review-stars {
+        color: #f5a623;
+        letter-spacing: 1px;
+        font-weight: 950;
+    }
+
+    .rating-row strong {
+        color: var(--text);
+        font-weight: 950;
+    }
+
+    .rating-row span:last-child {
+        color: var(--muted);
+        font-weight: 700;
+    }
+
+    .service-desc {
+        position: relative;
+        z-index: 1;
+        color: var(--muted);
+        line-height: 1.85;
+        font-size: 17px;
+        margin-bottom: 26px;
+    }
+
+    .info-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .info-item {
+        background: rgba(255,255,255,0.78);
+        border: 1px solid rgba(199, 91, 122, 0.14);
+        border-radius: 24px;
+        padding: 16px;
+        box-shadow: 0 12px 28px rgba(199, 91, 122, 0.08);
+    }
+
+    .info-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+
+    .info-item strong {
+        color: var(--accent);
+        font-size: 16px;
+        font-weight: 950;
+    }
+
+    .price-card {
+        position: relative;
+        z-index: 1;
+        color: white;
+        background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.32), transparent 35%),
+            linear-gradient(135deg, #a93f61, #c75b7a 48%, #e79aad);
+        border-radius: 34px;
+        padding: 30px;
+        margin-bottom: 24px;
+        box-shadow: 0 24px 58px rgba(199, 91, 122, 0.36);
+    }
+
+    .price-card span {
+        display: block;
+        font-weight: 850;
+        opacity: 0.92;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 12px;
+    }
+
+    .price-card strong {
+        display: block;
+        font-size: 42px;
+        font-weight: 950;
+        letter-spacing: -1px;
+    }
+
+    .price-card p {
+        margin: 10px 0 0;
+        opacity: 0.92;
+        line-height: 1.6;
+        font-weight: 600;
+    }
+
+    .action-box {
+        position: relative;
+        z-index: 20;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 22px;
+        pointer-events: auto;
+    }
+
+    .booking-action-btn,
+    .other-action-btn {
+        min-height: 58px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-weight: 950;
+        transition: 0.25s;
+        position: relative;
+        z-index: 21;
+        cursor: pointer;
+        border: none;
+        font-family: inherit;
+        font-size: 15px;
+    }
+
+    .booking-action-btn {
+        background: linear-gradient(135deg, #c75b7a, #e79aad);
+        color: white;
+        box-shadow: 0 18px 42px rgba(199, 91, 122, 0.36);
+    }
+
+    .booking-action-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 24px 52px rgba(199, 91, 122, 0.45);
+    }
+
+    .other-action-btn {
+        background: white;
+        color: var(--accent);
+        border: 1.5px solid rgba(199, 91, 122, 0.28);
+    }
+
+    .other-action-btn:hover {
+        transform: translateY(-4px);
+        background: #fff1f5;
+    }
+
+    .extra-gallery-section {
+        margin-top: 68px;
+    }
+
+    .center-heading {
+        text-align: center;
+        margin-bottom: 34px;
+    }
+
+    .center-heading p,
+    .section-mini {
+        color: var(--accent);
+        font-weight: 950;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin: 0 0 8px;
+        font-size: 13px;
+    }
+
+    .center-heading h2,
+    .content-box h2 {
+        color: var(--text);
+        font-size: 36px;
+        margin: 0 0 12px;
+    }
+
+    .center-heading span {
+        display: block;
+        color: var(--muted);
+        font-size: 16px;
+    }
+
+    .extra-gallery-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr;
+        grid-auto-rows: 240px;
+        gap: 22px;
+    }
+
+    .extra-photo {
+        position: relative;
+        border: none;
+        padding: 0;
+        border-radius: 34px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: 0 26px 64px rgba(199, 91, 122, 0.17);
+        background: #fff1f5;
+    }
+
+    .extra-photo.big-photo {
+        grid-row: span 2;
+    }
+
+    .extra-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: 0.45s;
+    }
+
+    .extra-photo:hover img {
+        transform: scale(1.09);
+    }
+
+    .extra-photo::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(25, 10, 16, 0.74), transparent 58%);
+        opacity: 0.9;
+    }
+
+    .extra-caption {
+        position: absolute;
+        z-index: 2;
+        left: 24px;
+        right: 24px;
+        bottom: 22px;
+        color: white;
+        text-align: left;
+    }
+
+    .extra-caption strong {
+        display: block;
+        font-size: 21px;
+        margin-bottom: 5px;
+    }
+
+    .extra-caption span {
+        font-weight: 700;
+        opacity: 0.9;
+    }
+
+    .gallery-empty {
+        grid-column: 1 / -1;
+        background: white;
+        border: 1px dashed rgba(199, 91, 122, 0.25);
+        border-radius: 28px;
+        padding: 36px;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 850;
+    }
+
+    .luxury-benefits {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 52px;
+    }
+
+    .benefit-card,
+    .content-box,
+    .addon-card,
+    .review-card {
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(199, 91, 122, 0.14);
+        box-shadow: 0 20px 55px rgba(199, 91, 122, 0.12);
+        backdrop-filter: blur(16px);
+    }
+
+    .benefit-card {
+        border-radius: 32px;
+        padding: 30px;
+        transition: 0.3s;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 70px rgba(199, 91, 122, 0.20);
+    }
+
+    .benefit-card span {
+        width: 58px;
+        height: 58px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #c75b7a, #e79aad);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 950;
+        box-shadow: 0 12px 30px rgba(199, 91, 122, 0.26);
+        margin-bottom: 18px;
+    }
+
+    .benefit-card h3,
+    .addon-card h3,
+    .review-card h3 {
+        color: var(--accent);
+        margin: 0 0 10px;
+    }
+
+    .benefit-card p,
+    .addon-card p,
+    .review-card p,
+    .content-box p,
+    .content-box li {
+        color: var(--muted);
+        line-height: 1.8;
+    }
+
+    .content-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 38px;
+    }
+
+    .content-box {
+        border-radius: 32px;
+        padding: 34px;
+    }
+
+    .note-box {
+        background: linear-gradient(145deg, rgba(255,248,251,0.96), rgba(255,255,255,0.9));
+    }
+
+    .note-box ul {
+        padding-left: 20px;
+        margin-bottom: 0;
+    }
+
+    .addon-section,
+    .review-section {
+        margin-top: 52px;
+    }
+
+    .addon-grid,
+    .review-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+    }
+
+    .addon-card,
+    .review-card {
+        border-radius: 30px;
+        padding: 28px;
+        transition: 0.3s;
+    }
+
+    .addon-card:hover,
+    .review-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 30px 70px rgba(199, 91, 122, 0.18);
+    }
+
+    .addon-card strong {
+        display: inline-block;
+        color: var(--accent);
+        font-size: 20px;
+        margin-top: 6px;
+        font-weight: 950;
+    }
+
+    .review-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #a93f61, #e79aad);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 950;
+        box-shadow: 0 12px 30px rgba(199, 91, 122, 0.24);
+    }
+
+    .review-top h3 {
+        margin: 0 0 4px;
+        font-size: 17px;
+    }
+
+    .review-top span {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .review-stars {
+        color: #f5a623;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+        font-weight: 950;
+    }
+
+    .empty-review {
+        grid-column: 1 / -1;
+        text-align: center;
+        background: white;
+        border: 1px dashed rgba(199, 91, 122, 0.25);
+        border-radius: 26px;
+        padding: 34px;
+        color: var(--muted);
+        font-weight: 850;
+    }
+
+    .image-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(18, 8, 12, 0.9);
+        backdrop-filter: blur(20px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+    }
+
+    .image-modal.show {
+        display: flex;
+    }
+
+    .image-modal img {
+        max-width: min(1220px, 94vw);
+        max-height: 88vh;
+        object-fit: contain;
+        border-radius: 30px;
+        box-shadow: 0 34px 110px rgba(0, 0, 0, 0.52);
+    }
+
+    .close-modal {
+        position: fixed;
+        top: 24px;
+        right: 28px;
+        width: 52px;
+        height: 52px;
+        border: none;
+        border-radius: 999px;
+        background: white;
+        color: var(--accent);
+        font-size: 32px;
+        cursor: pointer;
+        font-weight: 800;
+        z-index: 10001;
+    }
+
+    .modal-nav {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 58px;
+        height: 58px;
+        border: none;
+        border-radius: 999px;
+        background: white;
+        color: var(--accent);
+        font-size: 42px;
+        cursor: pointer;
+        z-index: 10001;
+        font-weight: 800;
+    }
+
+    .modal-prev {
+        left: 34px;
+    }
+
+    .modal-next {
+        right: 34px;
+    }
+
+    .modal-counter {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        transform: translateX(-50%);
+        color: white;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-weight: 850;
+        z-index: 10001;
+    }
+
+    .login-warning-box {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        background: rgba(18, 8, 12, 0.72);
+        backdrop-filter: blur(14px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .login-warning-box.show {
+        display: flex;
+    }
+
+    .login-warning-content {
+        width: min(440px, 100%);
+        position: relative;
+        background: white;
+        border-radius: 32px;
+        padding: 34px 30px 30px;
+        text-align: center;
+        box-shadow: 0 32px 90px rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(199, 91, 122, 0.18);
+    }
+
+    .warning-icon {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 16px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #c75b7a, #e79aad);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        font-weight: 950;
+        box-shadow: 0 16px 36px rgba(199, 91, 122, 0.30);
+    }
+
+    .login-warning-content h3 {
+        margin: 0 0 12px;
+        color: var(--accent);
+        font-size: 30px;
+        font-weight: 950;
+    }
+
+    .login-warning-content p {
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-weight: 700;
+    }
+
+    .close-warning-btn {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 999px;
+        background: #fff1f5;
+        color: var(--accent);
+        font-size: 26px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .login-warning-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .login-now-btn,
+    .cancel-warning-btn {
+        min-height: 50px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-weight: 900;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 15px;
+    }
+
+    .login-now-btn {
+        background: linear-gradient(135deg, #c75b7a, #e79aad);
+        color: white;
+        box-shadow: 0 14px 34px rgba(199, 91, 122, 0.32);
+    }
+
+    .cancel-warning-btn {
+        border: 1.5px solid rgba(199, 91, 122, 0.22);
+        background: white;
+        color: var(--accent);
+    }
+
+    @media (max-width: 1120px) {
+        .vip-detail-hero,
+        .luxury-benefits,
+        .content-section {
+            grid-template-columns: 1fr;
+        }
+
+        .main-photo-card {
+            height: 560px;
+        }
+
+        .extra-gallery-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .main-photo-card {
+            height: 390px;
+            border-radius: 30px;
+        }
+
+        .photo-title {
+            left: 22px;
+            right: 22px;
+            bottom: 24px;
+            padding-right: 0;
+        }
+
+        .photo-title h1 {
+            font-size: 28px;
+        }
+
+        .open-photo-btn {
+            position: static;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .sub-photo-list {
+            grid-template-columns: repeat(2, 1fr);
+            margin-top: 14px;
+            padding: 0;
+        }
+
+        .service-info-panel {
+            border-radius: 30px;
+            padding: 24px;
+        }
+
+        .service-info-panel h2 {
+            font-size: 34px;
+        }
+
+        .info-grid,
+        .extra-gallery-grid,
+        .action-box,
+        .login-warning-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .extra-photo.big-photo {
+            grid-row: span 1;
+        }
+
+        .price-card strong {
+            font-size: 32px;
+        }
+
+        .modal-nav {
+            width: 46px;
+            height: 46px;
+            font-size: 32px;
+        }
+
+        .modal-prev {
+            left: 14px;
+        }
+
+        .modal-next {
+            right: 14px;
+        }
+    }
+</style>
+
+{% endblock %}

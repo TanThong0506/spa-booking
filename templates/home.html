@@ -1,0 +1,528 @@
+{% extends 'base.html' %}
+
+{% block title %}Trang chủ - Spa Booking{% endblock %}
+
+{% block content %}
+
+<section class="hero-section">
+    <div class="hero-text">
+        <p class="small-title">Spa & Beauty Center</p>
+
+    <h1>Đặt lịch spa dễ dàng, nhanh chóng và tiện lợi</h1>
+
+    <p class="description">
+        Trải nghiệm dịch vụ chăm sóc sắc đẹp, massage thư giãn và gội đầu dưỡng sinh
+        với quy trình đặt lịch trực tuyến đơn giản.
+    </p>
+
+    <div class="hero-buttons">
+        <a href="{% url 'services:list' %}" class="btn">Xem dịch vụ</a>
+        <a href="{% url 'booking:form' %}" class="btn-outline">Đặt lịch ngay</a>
+    </div>
+</div>
+
+<div class="hero-box">
+    <div class="spa-card">
+        <div class="spa-image">🌸</div>
+        <h3>Relax Spa</h3>
+        <p>Chăm sóc cơ thể và tinh thần của bạn mỗi ngày.</p>
+    </div>
+</div>
+
+</section>
+
+<section class="intro-section">
+    <p class="small-title">Giới thiệu</p>
+
+<h2>Chăm sóc sắc đẹp và thư giãn chuyên nghiệp</h2>
+
+<p>
+    Spa Booking giúp khách hàng dễ dàng xem dịch vụ, lựa chọn thời gian phù hợp
+    và đặt lịch trực tuyến nhanh chóng.
+</p>
+
+</section>
+
+<section class="service-section">
+    <div class="section-title">
+        <p>Dịch vụ nổi bật</p>
+        <h2>Các dịch vụ được spa đề xuất</h2>
+    </div>
+
+<div class="service-list">
+    {% for service in featured_services %}
+        <div class="service-card">
+            <div class="service-img">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                {% else %}
+                    <div class="no-image">Chưa có ảnh</div>
+                {% endif %}
+            </div>
+
+            <div class="service-content">
+                <h3>{{ service.name }}</h3>
+
+                <div class="rating-box">
+                    <span class="stars">★★★★★</span>
+
+                    <span class="rating-text">
+                        {% if service.average_rating %}
+                            {{ service.average_rating|floatformat:1 }}/5
+                        {% else %}
+                            0.0/5
+                        {% endif %}
+
+                        {% if service.review_count %}
+                            · {{ service.review_count }} đánh giá
+                        {% else %}
+                            · Chưa có đánh giá
+                        {% endif %}
+                    </span>
+                </div>
+
+                <p>{{ service.description|truncatechars:120 }}</p>
+
+                <div class="service-meta">
+                    <span>{{ service.duration_minutes }} phút</span>
+
+                    <strong class="price-text">
+                        {% if service.price_text %}
+                            {{ service.price_text }}
+                        {% else %}
+                            {{ service.price|floatformat:0 }} VND
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <a href="{% url 'services:detail' service.slug %}" class="btn-card">
+                    Xem chi tiết
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-box">
+            Chưa có dịch vụ nổi bật. Vào admin tick “Dịch vụ nổi bật” cho dịch vụ cần hiển thị.
+        </div>
+    {% endfor %}
+</div>
+
+</section>
+
+<section class="service-section latest-section">
+    <div class="section-title">
+        <p>Dịch vụ mới</p>
+        <h2>Một số dịch vụ mới cập nhật</h2>
+    </div>
+
+<div class="service-list">
+    {% for service in latest_services %}
+        <div class="service-card">
+            <div class="service-img">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                {% else %}
+                    <div class="no-image">Chưa có ảnh</div>
+                {% endif %}
+            </div>
+
+            <div class="service-content">
+                <h3>{{ service.name }}</h3>
+
+                <div class="rating-box">
+                    <span class="stars">★★★★★</span>
+
+                    <span class="rating-text">
+                        {% if service.average_rating %}
+                            {{ service.average_rating|floatformat:1 }}/5
+                        {% else %}
+                            0.0/5
+                        {% endif %}
+
+                        {% if service.review_count %}
+                            · {{ service.review_count }} đánh giá
+                        {% else %}
+                            · Chưa có đánh giá
+                        {% endif %}
+                    </span>
+                </div>
+
+                <p>{{ service.description|truncatechars:120 }}</p>
+
+                <div class="service-meta">
+                    <span>{{ service.duration_minutes }} phút</span>
+
+                    <strong class="price-text">
+                        {% if service.price_text %}
+                            {{ service.price_text }}
+                        {% else %}
+                            {{ service.price|floatformat:0 }} VND
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <a href="{% url 'services:detail' service.slug %}" class="btn-card">
+                    Xem chi tiết
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-box">
+            Chưa có dịch vụ mới.
+        </div>
+    {% endfor %}
+</div>
+
+<div class="view-more-box">
+    <a href="{% url 'services:list' %}" class="btn-outline">
+        Xem tất cả dịch vụ
+    </a>
+</div>
+
+</section>
+
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .hero-section {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: center;
+        gap: 40px;
+        padding: 70px 0 50px;
+    }
+
+    .small-title {
+        color: var(--accent);
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .hero-text h1 {
+        font-size: 50px;
+        line-height: 1.15;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .description {
+        font-size: 18px;
+        color: var(--muted);
+        line-height: 1.7;
+        margin: 24px 0;
+        max-width: 620px;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .hero-box {
+        display: flex;
+        justify-content: center;
+    }
+
+    .spa-card {
+        width: 360px;
+        min-height: 420px;
+        background: linear-gradient(145deg, #ffd6e2, #ffffff);
+        border-radius: 34px;
+        padding: 35px;
+        box-shadow: 0 20px 50px rgba(199, 91, 122, 0.25);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .spa-image {
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 25px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 90px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .spa-card h3 {
+        color: var(--accent);
+        font-size: 30px;
+        margin: 0 0 12px;
+    }
+
+    .spa-card p {
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .intro-section {
+        background: white;
+        padding: 45px 60px;
+        border-radius: 28px;
+        text-align: center;
+        box-shadow: 0 12px 35px rgba(199, 91, 122, 0.12);
+        margin: 30px 0 65px;
+    }
+
+    .intro-section h2 {
+        font-size: 34px;
+        margin: 0 0 16px;
+    }
+
+    .intro-section p {
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 17px;
+    }
+
+    .service-section {
+        margin-bottom: 70px;
+    }
+
+    .latest-section {
+        margin-top: 20px;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+
+    .section-title p {
+        color: var(--accent);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .section-title h2 {
+        font-size: 34px;
+        margin: 8px 0 0;
+    }
+
+    .service-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 28px;
+        align-items: stretch;
+    }
+
+    .service-card {
+        width: 100%;
+        min-width: 0;
+        height: 100%;
+        background: white;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 14px 38px rgba(199, 91, 122, 0.15);
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 22px 55px rgba(199, 91, 122, 0.24);
+    }
+
+    .service-img {
+        width: 100%;
+        height: 220px;
+        background: #fff1f5;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .service-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .no-image {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-weight: 700;
+        background: linear-gradient(145deg, #ffe3eb, #ffffff);
+    }
+
+    .service-content {
+        padding: 26px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .service-content h3 {
+        color: var(--accent);
+        font-size: 24px;
+        line-height: 1.3;
+        margin: 0 0 10px;
+        min-height: 62px;
+    }
+
+    .rating-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+        min-height: 44px;
+    }
+
+    .stars {
+        color: #f5a623;
+        letter-spacing: 1px;
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .rating-text {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .service-content > p {
+        color: var(--muted);
+        line-height: 1.7;
+        min-height: 75px;
+        margin: 0 0 18px;
+    }
+
+    .service-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: auto 0 22px;
+    }
+
+    .service-meta span {
+        background: #fff1f5;
+        color: #a84363;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .price-text {
+        display: block;
+        color: #c75b7a;
+        font-size: 22px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .btn-card {
+        width: 100%;
+        min-height: 46px;
+        margin-top: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+        background: var(--accent);
+        color: white;
+        transition: 0.25s;
+    }
+
+    .btn-card:hover {
+        transform: translateY(-2px);
+        opacity: 0.92;
+    }
+
+    .empty-box {
+        grid-column: 1 / -1;
+        background: white;
+        border: 1px dashed rgba(199, 91, 122, 0.35);
+        border-radius: 22px;
+        padding: 28px;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+    }
+
+    .view-more-box {
+        display: flex;
+        justify-content: center;
+        margin-top: 34px;
+    }
+
+    @media (max-width: 1000px) {
+        .service-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 900px) {
+        .hero-section {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .hero-text h1 {
+            font-size: 38px;
+        }
+
+        .description {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            justify-content: center;
+        }
+
+        .spa-card {
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .intro-section {
+            padding: 32px 22px;
+        }
+
+        .service-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .service-list {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .service-img {
+            height: 250px;
+        }
+
+        .service-content h3,
+        .rating-box,
+        .service-content > p {
+            min-height: auto;
+        }
+    }
+</style>
+
+{% endblock %}

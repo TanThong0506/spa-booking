@@ -1,0 +1,608 @@
+{% extends 'base.html' %}
+
+{% block title %}Đặt lịch - Spa Booking{% endblock %}
+
+{% block content %}
+
+<section class="booking-page">
+    <div class="booking-header">
+        <p>Đặt lịch spa</p>
+        <h1>Chọn dịch vụ và thời gian phù hợp</h1>
+        <span>Vui lòng chọn thời gian trong tương lai và hình thức thanh toán.</span>
+    </div>
+
+    {% if messages %}
+        <div class="message-box">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="booking-wrapper">
+        <div class="booking-info">
+            <div class="info-icon">🌸</div>
+
+            <h2>Spa Booking</h2>
+
+            <p>
+                Chúng tôi sẽ tiếp nhận lịch hẹn của bạn và xác nhận trong thời gian sớm nhất.
+                Sau khi được xác nhận, bạn có thể xem trạng thái và nhân viên phục vụ trong mục
+                “Dịch vụ của tôi”.
+            </p>
+
+            <div class="info-item">
+                <strong>Thời gian làm việc</strong>
+                <span>08:00 - 21:00 hằng ngày</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Lưu ý đặt lịch</strong>
+                <span>Không thể đặt lịch với ngày hoặc giờ đã qua.</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Thanh toán</strong>
+                <span>Hỗ trợ thanh toán tiền mặt hoặc chuyển khoản bằng mã QR.</span>
+            </div>
+
+            <a href="{% url 'booking:mine' %}" class="btn-outline info-btn">
+                Xem lịch đã đặt
+            </a>
+        </div>
+
+        <form method="post" class="booking-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Họ tên khách hàng</label>
+                <input
+                    type="text"
+                    name="full_name"
+                    value="{{ customer_name }}"
+                    readonly
+                    class="readonly-input"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input
+                    type="text"
+                    name="phone"
+                    value="{{ customer_phone }}"
+                    readonly
+                    class="readonly-input"
+                >
+            </div>
+
+            <div class="form-group full">
+                <label>Dịch vụ</label>
+                <select name="service" id="serviceSelect" required>
+                    <option value="">Chọn dịch vụ</option>
+
+                    {% for service in services %}
+                        <option
+                            value="{{ service.id }}"
+                            data-price="{{ service.price }}"
+                            data-name="{{ service.name }}"
+                            {% if selected_service_id == service.id|stringformat:"s" %}selected{% endif %}
+                        >
+                            {{ service.name }} - {{ service.price }}đ
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ngày đặt</label>
+                <input
+                    type="date"
+                    name="booking_date"
+                    min="{{ today|date:'Y-m-d' }}"
+                    value="{{ request.POST.booking_date }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Giờ đặt</label>
+                <input
+                    type="time"
+                    name="booking_time"
+                    value="{{ request.POST.booking_time }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group full">
+                <label>Hình thức thanh toán</label>
+
+                <div class="payment-options">
+                    <label class="payment-card">
+                        <input
+                            type="radio"
+                            name="payment_method"
+                            value="cash"
+                            {% if request.POST.payment_method == 'cash' %}checked{% endif %}
+                            required
+                        >
+                        <span>
+                            <strong>💵 Tiền mặt</strong>
+                            <small>Thanh toán trực tiếp tại spa sau khi sử dụng dịch vụ.</small>
+                        </span>
+                    </label>
+
+                    <label class="payment-card">
+                        <input
+                            type="radio"
+                            name="payment_method"
+                            value="transfer"
+                            {% if request.POST.payment_method == 'transfer' %}checked{% endif %}
+                            required
+                        >
+                        <span>
+                            <strong>🏦 Chuyển khoản</strong>
+                            <small>Quét mã QR MB Bank để thanh toán đúng giá dịch vụ.</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group full transfer-info" id="transferInfo">
+                <div class="qr-box">
+                    <div class="qr-image">
+                        <img id="qrImage" src="" alt="Mã QR chuyển khoản MB Bank">
+                    </div>
+
+                    <div class="qr-content">
+                        <h3>Quét mã chuyển khoản</h3>
+
+                        <p>
+                            Vui lòng mở ứng dụng ngân hàng và quét mã QR để thanh toán.
+                            Mã QR sẽ tự hiển thị đúng số tiền theo dịch vụ đã chọn.
+                        </p>
+
+                        <div class="bank-info">
+                            <p><strong>Ngân hàng:</strong> MB Bank</p>
+                            <p><strong>Số tài khoản / SĐT:</strong> 0867112749</p>
+                            <p><strong>Chủ tài khoản:</strong> Le Tan Thong</p>
+                            <p><strong>Dịch vụ:</strong> <span id="serviceNameText">Chưa chọn</span></p>
+                            <p><strong>Số tiền:</strong> <span id="amountText">0đ</span></p>
+                            <p><strong>Nội dung:</strong> <span id="transferContentText">{{ customer_name }} - {{ customer_phone }}</span></p>
+                        </div>
+
+                        <small>
+                            Sau khi chuyển khoản, spa sẽ kiểm tra và xác nhận lịch hẹn cho bạn.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group full">
+                <label>Ghi chú</label>
+                <textarea name="note" rows="4" placeholder="Nhập ghi chú nếu có">{{ request.POST.note }}</textarea>
+            </div>
+
+            <button type="submit" class="btn submit-btn">
+                Gửi lịch đặt
+            </button>
+        </form>
+    </div>
+</section>
+
+<script>
+    const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+    const transferInfo = document.getElementById('transferInfo');
+    const serviceSelect = document.getElementById('serviceSelect');
+    const qrImage = document.getElementById('qrImage');
+    const amountText = document.getElementById('amountText');
+    const serviceNameText = document.getElementById('serviceNameText');
+    const transferContentText = document.getElementById('transferContentText');
+
+    function formatCurrency(number) {
+        const value = Number(number) || 0;
+        return new Intl.NumberFormat('vi-VN').format(value) + 'đ';
+    }
+
+    function updateQrByService() {
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+
+        if (!selectedOption || !selectedOption.value) {
+            serviceNameText.textContent = 'Chưa chọn';
+            amountText.textContent = '0đ';
+            transferContentText.textContent = '{{ customer_name|escapejs }} - {{ customer_phone|escapejs }}';
+            qrImage.src = '';
+            return;
+        }
+
+        const price = selectedOption.dataset.price || 0;
+        const serviceName = selectedOption.dataset.name || '';
+
+        const accountName = 'Le Tan Thong';
+        const bankCode = '970422';
+        const accountNo = '0867112749';
+        const content = '{{ customer_name|escapejs }} - {{ customer_phone|escapejs }}';
+
+        serviceNameText.textContent = serviceName;
+        amountText.textContent = formatCurrency(price);
+        transferContentText.textContent = content;
+
+        qrImage.src =
+            `https://img.vietqr.io/image/${bankCode}-${accountNo}-compact2.png?amount=${price}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(accountName)}`;
+    }
+
+    function toggleTransferInfo() {
+        const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+
+        if (selectedPayment && selectedPayment.value === 'transfer') {
+            transferInfo.style.display = 'block';
+            updateQrByService();
+        } else {
+            transferInfo.style.display = 'none';
+        }
+    }
+
+    paymentRadios.forEach(function(radio) {
+        radio.addEventListener('change', toggleTransferInfo);
+    });
+
+    serviceSelect.addEventListener('change', function() {
+        updateQrByService();
+    });
+
+    toggleTransferInfo();
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-page {
+        padding: 40px 0 70px;
+    }
+
+    .booking-header {
+        text-align: center;
+        margin-bottom: 42px;
+    }
+
+    .booking-header p {
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 3px;
+        margin: 0 0 12px;
+    }
+
+    .booking-header h1 {
+        font-size: 42px;
+        margin: 0 0 12px;
+        color: var(--text);
+    }
+
+    .booking-header span {
+        color: var(--muted);
+        font-size: 17px;
+    }
+
+    .message-box {
+        max-width: 980px;
+        margin: 0 auto 24px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .message {
+        padding: 15px 18px;
+        border-radius: 16px;
+        font-weight: 800;
+        background: #fff1f5;
+        color: var(--accent-strong);
+        border: 1px solid var(--border);
+    }
+
+    .message.success {
+        background: #f0fff4;
+        color: #217a3b;
+        border-color: rgba(33, 122, 59, 0.2);
+    }
+
+    .message.error {
+        background: #fff0f0;
+        color: #c0392b;
+        border-color: rgba(192, 57, 43, 0.2);
+    }
+
+    .booking-wrapper {
+        display: grid;
+        grid-template-columns: 0.85fr 1.15fr;
+        gap: 32px;
+        align-items: stretch;
+    }
+
+    .booking-info {
+        background: linear-gradient(145deg, #ffe3eb, #ffffff);
+        border: 1px solid var(--border);
+        border-radius: 32px;
+        padding: 36px;
+        box-shadow: 0 18px 50px rgba(199, 91, 122, 0.15);
+    }
+
+    .info-icon {
+        width: 86px;
+        height: 86px;
+        background: white;
+        border-radius: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+        box-shadow: 0 12px 30px rgba(199, 91, 122, 0.14);
+        margin-bottom: 22px;
+    }
+
+    .booking-info h2 {
+        color: var(--accent);
+        font-size: 30px;
+        margin: 0 0 14px;
+    }
+
+    .booking-info p {
+        color: var(--muted);
+        line-height: 1.8;
+        margin-bottom: 28px;
+    }
+
+    .info-item {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+
+    .info-item strong {
+        display: block;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .info-item span {
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .info-btn {
+        margin-top: 12px;
+    }
+
+    .booking-form {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 32px;
+        padding: 34px;
+        box-shadow: 0 18px 50px rgba(199, 91, 122, 0.12);
+        max-width: none;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .booking-form input,
+    .booking-form select,
+    .booking-form textarea {
+        width: 100%;
+        min-height: 50px;
+        margin: 0;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        outline: none;
+        font: inherit;
+        background: #fff;
+        color: var(--text);
+    }
+
+    .booking-form textarea {
+        padding-top: 14px;
+        resize: vertical;
+    }
+
+    .booking-form input:focus,
+    .booking-form select:focus,
+    .booking-form textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+    }
+
+    .readonly-input {
+        background: #fff1f5 !important;
+        color: #555 !important;
+        cursor: not-allowed;
+        font-weight: 800;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .payment-card {
+        cursor: pointer;
+    }
+
+    .payment-card input {
+        display: none;
+    }
+
+    .payment-card span {
+        display: block;
+        height: 100%;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 20px;
+        background: #fff8fb;
+        transition: 0.25s ease;
+    }
+
+    .payment-card strong {
+        display: block;
+        color: var(--text);
+        font-size: 17px;
+        margin-bottom: 8px;
+    }
+
+    .payment-card small {
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .payment-card input:checked + span {
+        background: var(--accent);
+        border-color: var(--accent);
+        box-shadow: 0 14px 32px rgba(199, 91, 122, 0.22);
+    }
+
+    .payment-card input:checked + span strong,
+    .payment-card input:checked + span small {
+        color: white;
+    }
+
+    .transfer-info {
+        display: none;
+        background: #fff8fb;
+        border: 1px dashed var(--border);
+        border-radius: 24px;
+        padding: 20px;
+    }
+
+    .qr-box {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .qr-image {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 16px;
+        box-shadow: 0 12px 30px rgba(199, 91, 122, 0.12);
+    }
+
+    .qr-image img {
+        width: 100%;
+        display: block;
+        border-radius: 16px;
+        min-height: 180px;
+        object-fit: contain;
+    }
+
+    .qr-content h3 {
+        margin: 0 0 12px;
+        color: var(--accent);
+        font-size: 24px;
+    }
+
+    .qr-content p {
+        color: var(--muted);
+        line-height: 1.7;
+        margin: 0 0 14px;
+    }
+
+    .bank-info {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        margin: 14px 0;
+    }
+
+    .bank-info p {
+        margin: 7px 0;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .bank-info strong {
+        color: var(--text);
+    }
+
+    .qr-content small {
+        color: var(--accent-strong);
+        font-weight: 800;
+    }
+
+    .submit-btn {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-height: 52px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    @media (max-width: 900px) {
+        .booking-wrapper {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-header h1 {
+            font-size: 34px;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .qr-box {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .qr-image {
+            max-width: 260px;
+            margin: 0 auto;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .booking-form {
+            grid-template-columns: 1fr;
+            padding: 24px;
+        }
+
+        .form-group.full,
+        .submit-btn {
+            grid-column: auto;
+        }
+
+        .booking-info {
+            padding: 26px;
+        }
+
+        .payment-options {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

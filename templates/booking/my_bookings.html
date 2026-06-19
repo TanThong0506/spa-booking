@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+
+{% block title %}Lịch đã đặt - Spa Booking{% endblock %}
+
+{% block content %}
+
+<section class="page-title">
+    <p>Lịch hẹn của bạn</p>
+    <h1>Các lịch đã đặt</h1>
+    <span>Theo dõi trạng thái lịch hẹn, nhân viên phục vụ và hoàn tiền nếu có.</span>
+</section>
+
+{% if messages %}
+    <div class="message-box">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="booking-list">
+    {% for booking in bookings %}
+    <article class="booking-card">
+
+        <div class="booking-top">
+            <div>
+                <p class="booking-label">Dịch vụ</p>
+                <h3>{{ booking.service.name }}</h3>
+            </div>
+
+            <span class="status status-{{ booking.status }}">
+                {{ booking.get_status_display }}
+            </span>
+        </div>
+
+        <div class="booking-info-grid">
+            <div class="booking-info-item">
+                <span>Ngày đặt</span>
+                <strong>{{ booking.booking_date }}</strong>
+            </div>
+
+            <div class="booking-info-item">
+                <span>Giờ đặt</span>
+                <strong>{{ booking.booking_time }}</strong>
+            </div>
+
+            <div class="booking-info-item">
+                <span>Thanh toán</span>
+                <strong>{{ booking.get_payment_method_display }}</strong>
+            </div>
+
+            <div class="booking-info-item">
+                <span>Nhân viên phục vụ</span>
+
+                {% if booking.status == 'confirmed' or booking.status == 'completed' %}
+                    {% if booking.staff %}
+                        <strong>{{ booking.staff_name }}</strong>
+                    {% else %}
+                        <strong>Đang phân công</strong>
+                    {% endif %}
+                {% else %}
+                    <strong>Chưa có</strong>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if booking.addons.all %}
+            <div class="booking-extra">
+                <span>Menu thêm:</span>
+                {% for addon in booking.addons.all %}
+                    <strong>{{ addon.name }}</strong>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if booking.note %}
+            <div class="booking-extra">
+                <span>Ghi chú:</span>
+                <p>{{ booking.note }}</p>
+            </div>
+        {% endif %}
+
+        {% if booking.status == 'cancelled' %}
+            <div class="cancel-info">
+                <h4>Thông tin hủy lịch</h4>
+
+                <p>
+                    <strong>Lý do hủy:</strong>
+                    {{ booking.get_cancel_reason_display }}
+                </p>
+
+                {% if booking.cancel_reason == 'other' and booking.cancel_reason_other %}
+                    <p>
+                        <strong>Chi tiết:</strong>
+                        {{ booking.cancel_reason_other }}
+                    </p>
+                {% endif %}
+
+                {% if booking.cancelled_at %}
+                    <p>
+                        <strong>Thời gian hủy:</strong>
+                        {{ booking.cancelled_at }}
+                    </p>
+                {% endif %}
+
+                {% if booking.payment_method == 'transfer' %}
+                    <p>
+                        <strong>Trạng thái hoàn tiền:</strong>
+                        <span class="refund refund-{{ booking.refund_status }}">
+                            {{ booking.get_refund_status_display }}
+                        </span>
+                    </p>
+
+                    {% if booking.refund_status == 'pending' %}
+                        <p class="refund-note">
+                            Spa đang chờ admin xử lý hoàn tiền cho bạn.
+                        </p>
+                    {% endif %}
+
+                    {% if booking.refund_status == 'refunded' %}
+                        <p class="refund-success">
+                            Spa đã hoàn tiền thành công.
+                        </p>
+
+                        {% if booking.refunded_at %}
+                            <p>
+                                <strong>Thời gian hoàn tiền:</strong>
+                                {{ booking.refunded_at }}
+                            </p>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if booking.can_cancel %}
+    <div class="booking-actions">
+        <a href="{% url 'booking:cancel' booking.id %}" class="btn-cancel-booking">
+            Hủy lịch
+        </a>
+    </div>
+	{% elif booking.is_expired and booking.status != 'cancelled' and booking.status != 'completed' %}
+   		 <div class="expired-notice">
+       	 Lịch hẹn đã qua thời gian hiện tại nên không thể hủy.
+    	</div>
+	{% endif %}
+
+    </article>
+    {% empty %}
+    <div class="empty-box">
+        <h3>Chưa có lịch đặt nào</h3>
+        <p>Bạn có thể chọn dịch vụ và đặt lịch ngay.</p>
+        <a href="{% url 'services:list' %}" class="btn">Xem dịch vụ</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-title {
+        text-align: center;
+        padding: 45px 0 30px;
+    }
+
+    .page-title p {
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+    }
+
+    .page-title h1 {
+        font-size: 42px;
+        margin: 0 0 12px;
+        color: var(--text);
+    }
+
+    .page-title span {
+        color: var(--muted);
+    }
+
+    .message-box {
+        max-width: 920px;
+        margin: 0 auto 24px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .message {
+        padding: 14px 18px;
+        border-radius: 16px;
+        background: #fff1f5;
+        color: var(--accent-strong);
+        border: 1px solid var(--border);
+        font-weight: 800;
+    }
+
+    .message.success {
+        background: #f0fff4;
+        color: #217a3b;
+        border-color: rgba(33, 122, 59, 0.2);
+    }
+
+    .message.error {
+        background: #fff0f0;
+        color: #c0392b;
+        border-color: rgba(192, 57, 43, 0.2);
+    }
+
+    .booking-list {
+        display: grid;
+        gap: 22px;
+        max-width: 920px;
+        margin: 0 auto;
+    }
+
+    .booking-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 28px;
+        box-shadow: 0 16px 45px rgba(199, 91, 122, 0.12);
+    }
+
+    .booking-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .booking-label {
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        font-size: 13px;
+        margin: 0 0 8px;
+    }
+
+    .booking-card h3 {
+        color: var(--text);
+        font-size: 26px;
+        margin: 0;
+    }
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 999px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .status-pending {
+        background: #fff8e6;
+        color: #b7791f;
+    }
+
+    .status-confirmed {
+        background: #e9f8ff;
+        color: #1976a3;
+    }
+
+    .status-completed {
+        background: #eafaf0;
+        color: #217a3b;
+    }
+
+    .status-cancelled {
+        background: #fff0f0;
+        color: #c0392b;
+    }
+
+    .booking-info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .booking-info-item {
+        background: #fff8fb;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+    }
+
+    .booking-info-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 6px;
+        font-weight: 700;
+    }
+
+    .booking-info-item strong {
+        color: var(--accent);
+        font-size: 15px;
+    }
+
+    .booking-extra,
+    .cancel-info {
+        margin-top: 18px;
+        background: #fff8fb;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        color: var(--muted);
+    }
+
+    .booking-extra span,
+    .cancel-info h4 {
+        color: var(--accent);
+        font-weight: 900;
+    }
+
+    .booking-extra p,
+    .cancel-info p {
+        margin: 8px 0;
+        line-height: 1.7;
+    }
+
+    .cancel-info h4 {
+        margin: 0 0 10px;
+        font-size: 18px;
+    }
+
+    .refund {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-weight: 900;
+    }
+
+    .refund-none {
+        background: #f2f2f2;
+        color: #666;
+    }
+
+    .refund-pending {
+        background: #fff8e6;
+        color: #b7791f;
+    }
+
+    .refund-refunded {
+        background: #eafaf0;
+        color: #217a3b;
+    }
+
+    .refund-note {
+        color: #b7791f;
+        font-weight: 800;
+    }
+
+    .refund-success {
+        color: #217a3b;
+        font-weight: 800;
+    }
+
+    .booking-actions {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-cancel-booking {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #fff0f0;
+        color: #c0392b;
+        border: 1px solid rgba(192, 57, 43, 0.2);
+        font-weight: 900;
+    }
+
+    .btn-cancel-booking:hover {
+        background: #c0392b;
+        color: white;
+    }
+
+    .empty-box {
+        text-align: center;
+        background: white;
+        padding: 45px;
+        border-radius: 28px;
+        box-shadow: 0 16px 45px rgba(199, 91, 122, 0.12);
+    }
+
+    .empty-box h3 {
+        color: var(--accent);
+        margin-top: 0;
+    }
+
+    .empty-box p {
+        color: var(--muted);
+    }
+
+    @media (max-width: 800px) {
+        .booking-info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .booking-top {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .booking-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-actions {
+            justify-content: stretch;
+        }
+
+        .btn-cancel-booking {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
