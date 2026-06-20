@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from services.models import Service
-from .models import Booking
+from .models import Booking, ServiceReview
 
 
 def get_customer_name(user):
@@ -82,8 +82,16 @@ def booking_form(request):
 
         selected_service_id = service_id
 
-        if not service_id or not booking_date or not booking_time or not payment_method:
-            messages.error(request, 'Vui lòng chọn đầy đủ dịch vụ, ngày, giờ và hình thức thanh toán.')
+        if (
+            not service_id
+            or not booking_date
+            or not booking_time
+            or not payment_method
+        ):
+            messages.error(
+                request,
+                'Vui lòng chọn đầy đủ dịch vụ, ngày, giờ và hình thức thanh toán.'
+            )
             return render(request, 'booking/booking_form.html', {
                 'services': services,
                 'selected_service_id': selected_service_id,
@@ -92,13 +100,28 @@ def booking_form(request):
                 'today': today,
             })
 
-        service = get_object_or_404(Service, id=service_id, is_active=True)
+        service = get_object_or_404(
+            Service,
+            id=service_id,
+            is_active=True
+        )
 
         try:
-            booking_date_obj = datetime.strptime(booking_date, '%Y-%m-%d').date()
-            booking_time_obj = datetime.strptime(booking_time, '%H:%M').time()
+            booking_date_obj = datetime.strptime(
+                booking_date,
+                '%Y-%m-%d'
+            ).date()
+
+            booking_time_obj = datetime.strptime(
+                booking_time,
+                '%H:%M'
+            ).time()
+
         except ValueError:
-            messages.error(request, 'Ngày hoặc giờ đặt lịch không hợp lệ.')
+            messages.error(
+                request,
+                'Ngày hoặc giờ đặt lịch không hợp lệ.'
+            )
             return render(request, 'booking/booking_form.html', {
                 'services': services,
                 'selected_service_id': selected_service_id,
@@ -107,14 +130,21 @@ def booking_form(request):
                 'today': today,
             })
 
-        booking_datetime = datetime.combine(booking_date_obj, booking_time_obj)
+        booking_datetime = datetime.combine(
+            booking_date_obj,
+            booking_time_obj
+        )
+
         booking_datetime = timezone.make_aware(
             booking_datetime,
             timezone.get_current_timezone()
         )
 
         if booking_datetime <= timezone.now():
-            messages.error(request, 'Không thể đặt lịch với ngày hoặc giờ đã qua.')
+            messages.error(
+                request,
+                'Không thể đặt lịch với ngày hoặc giờ đã qua.'
+            )
             return render(request, 'booking/booking_form.html', {
                 'services': services,
                 'selected_service_id': selected_service_id,
@@ -127,7 +157,10 @@ def booking_form(request):
             Booking.PaymentMethod.CASH,
             Booking.PaymentMethod.TRANSFER
         ]:
-            messages.error(request, 'Hình thức thanh toán không hợp lệ.')
+            messages.error(
+                request,
+                'Hình thức thanh toán không hợp lệ.'
+            )
             return render(request, 'booking/booking_form.html', {
                 'services': services,
                 'selected_service_id': selected_service_id,
@@ -148,7 +181,10 @@ def booking_form(request):
             status=Booking.Status.PENDING
         )
 
-        messages.success(request, 'Đặt lịch thành công. Vui lòng chờ xác nhận.')
+        messages.success(
+            request,
+            'Đặt lịch thành công. Vui lòng chờ xác nhận.'
+        )
         return redirect('booking:mine')
 
     return render(request, 'booking/booking_form.html', {
@@ -174,6 +210,15 @@ def my_bookings(request):
         booking.is_expired = is_booking_expired(booking)
         booking.can_cancel = can_cancel_booking(booking)
 
+        booking.has_review = ServiceReview.objects.filter(
+            booking=booking
+        ).exists()
+
+        booking.can_review = (
+            booking.status == Booking.Status.COMPLETED
+            and not booking.has_review
+        )
+
     return render(request, 'booking/my_bookings.html', {
         'bookings': bookings,
     })
@@ -188,15 +233,24 @@ def cancel_booking(request, booking_id):
     )
 
     if booking.status == Booking.Status.CANCELLED:
-        messages.info(request, 'Lịch này đã được hủy trước đó.')
+        messages.info(
+            request,
+            'Lịch này đã được hủy trước đó.'
+        )
         return redirect('booking:mine')
 
     if booking.status == Booking.Status.COMPLETED:
-        messages.error(request, 'Không thể hủy lịch đã hoàn tất.')
+        messages.error(
+            request,
+            'Không thể hủy lịch đã hoàn tất.'
+        )
         return redirect('booking:mine')
 
     if is_booking_expired(booking):
-        messages.error(request, 'Không thể hủy lịch vì lịch hẹn đã qua thời gian hiện tại.')
+        messages.error(
+            request,
+            'Không thể hủy lịch vì lịch hẹn đã qua thời gian hiện tại.'
+        )
         return redirect('booking:mine')
 
     need_refund = (
@@ -205,28 +259,69 @@ def cancel_booking(request, booking_id):
     )
 
     if request.method == 'POST':
-        cancel_reason = request.POST.get('cancel_reason', '').strip()
-        cancel_reason_other = request.POST.get('cancel_reason_other', '').strip()
+        cancel_reason = request.POST.get(
+            'cancel_reason',
+            ''
+        ).strip()
 
-        refund_bank_name = request.POST.get('refund_bank_name', '').strip()
-        refund_account_number = request.POST.get('refund_account_number', '').strip()
-        refund_account_name = request.POST.get('refund_account_name', '').strip()
+        cancel_reason_other = request.POST.get(
+            'cancel_reason_other',
+            ''
+        ).strip()
+
+        refund_bank_name = request.POST.get(
+            'refund_bank_name',
+            ''
+        ).strip()
+
+        refund_account_number = request.POST.get(
+            'refund_account_number',
+            ''
+        ).strip()
+
+        refund_account_name = request.POST.get(
+            'refund_account_name',
+            ''
+        ).strip()
 
         if not cancel_reason:
-            messages.error(request, 'Vui lòng chọn lý do hủy lịch.')
-            return redirect('booking:cancel', booking_id=booking.id)
+            messages.error(
+                request,
+                'Vui lòng chọn lý do hủy lịch.'
+            )
+            return redirect(
+                'booking:cancel',
+                booking_id=booking.id
+            )
 
-        if cancel_reason == Booking.CancelReason.OTHER and not cancel_reason_other:
-            messages.error(request, 'Vui lòng nhập lý do hủy khác.')
-            return redirect('booking:cancel', booking_id=booking.id)
+        if (
+            cancel_reason == Booking.CancelReason.OTHER
+            and not cancel_reason_other
+        ):
+            messages.error(
+                request,
+                'Vui lòng nhập lý do hủy khác.'
+            )
+            return redirect(
+                'booking:cancel',
+                booking_id=booking.id
+            )
 
         if need_refund:
-            if not refund_bank_name or not refund_account_number or not refund_account_name:
+            if (
+                not refund_bank_name
+                or not refund_account_number
+                or not refund_account_name
+            ):
                 messages.error(
                     request,
-                    'Lịch này đã thanh toán chuyển khoản và đã được xác nhận. Vui lòng nhập đầy đủ thông tin tài khoản để hoàn tiền.'
+                    'Lịch này đã thanh toán chuyển khoản và đã được xác nhận. '
+                    'Vui lòng nhập đầy đủ thông tin tài khoản để hoàn tiền.'
                 )
-                return redirect('booking:cancel', booking_id=booking.id)
+                return redirect(
+                    'booking:cancel',
+                    booking_id=booking.id
+                )
 
             booking.refund_bank_name = refund_bank_name
             booking.refund_account_number = refund_account_number
@@ -244,10 +339,14 @@ def cancel_booking(request, booking_id):
         if need_refund:
             messages.success(
                 request,
-                'Hủy lịch thành công. Thông tin hoàn tiền đã được gửi, vui lòng chờ admin xử lý.'
+                'Hủy lịch thành công. Thông tin hoàn tiền đã được gửi, '
+                'vui lòng chờ admin xử lý.'
             )
         else:
-            messages.success(request, 'Hủy lịch thành công.')
+            messages.success(
+                request,
+                'Hủy lịch thành công.'
+            )
 
         return redirect('booking:mine')
 
@@ -256,3 +355,90 @@ def cancel_booking(request, booking_id):
         'need_refund': need_refund,
         'cancel_reasons': Booking.CancelReason.choices,
     })
+
+@login_required
+def review_booking(request, booking_id):
+    booking = get_object_or_404(
+        Booking.objects.select_related('service'),
+        id=booking_id,
+        user=request.user,
+        status=Booking.Status.COMPLETED
+    )
+
+    existing_review = ServiceReview.objects.filter(
+        booking=booking
+    ).first()
+
+    if existing_review:
+        messages.info(
+            request,
+            'Lịch sử dụng này đã được đánh giá trước đó.'
+        )
+        return redirect(
+            'booking:review_detail',
+            booking_id=booking.id
+        )
+
+    if request.method == 'POST':
+        rating_value = request.POST.get('rating', '').strip()
+        comment = request.POST.get('comment', '').strip()
+
+        try:
+            rating = int(rating_value)
+        except (TypeError, ValueError):
+            rating = 0
+
+        if rating < 1 or rating > 5:
+            messages.error(
+                request,
+                'Vui lòng chọn số sao từ 1 đến 5.'
+            )
+            return render(request, 'booking/review_form.html', {
+                'booking': booking,
+                'selected_rating': rating_value,
+                'comment': comment,
+            })
+
+        ServiceReview.objects.create(
+            booking=booking,
+            service=booking.service,
+            user=request.user,
+            rating=rating,
+            comment=comment
+        )
+
+        messages.success(
+            request,
+            'Đánh giá của bạn đã được lưu thành công.'
+        )
+
+        return redirect(
+            'booking:review_detail',
+            booking_id=booking.id
+        )
+
+    return render(request, 'booking/review_form.html', {
+        'booking': booking,
+    })
+
+
+@login_required
+def review_detail(request, booking_id):
+    booking = get_object_or_404(
+        Booking.objects.select_related('service'),
+        id=booking_id,
+        user=request.user,
+        status=Booking.Status.COMPLETED
+    )
+
+    review = get_object_or_404(
+        ServiceReview,
+        booking=booking,
+        user=request.user
+    )
+
+    return render(request, 'booking/review_detail.html', {
+        'booking': booking,
+        'review': review,
+    })
+

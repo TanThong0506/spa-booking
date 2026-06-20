@@ -85,8 +85,8 @@
             </strong>
 
             <span>
-                {% if reviews %}
-                    {{ reviews|length }} đánh giá
+                {% if review_count %}
+                    {{ review_count }} đánh giá
                 {% else %}
                     Chưa có đánh giá
                 {% endif %}
@@ -276,66 +276,85 @@
     </section>
 {% endif %}
 
-<section class="review-section">
+<section class="customer-reviews" id="reviews">
     <div class="center-heading">
         <p>Đánh giá</p>
         <h2>Cảm nhận của khách hàng</h2>
+        <span>
+            Những chia sẻ thực tế từ khách hàng đã sử dụng dịch vụ.
+        </span>
     </div>
 
-    <div class="review-grid">
+    <div class="rating-filter-list">
+        {% for item in rating_filters %}
+            <a
+                href="?rating={{ item.value }}#reviews"
+                class="rating-filter-btn {% if selected_rating == item.value %}active{% endif %}"
+            >
+                {% if item.value == 'all' %}
+                    <span>Tất cả</span>
+                {% else %}
+                    <span class="filter-star">★</span>
+                    <span>{{ item.label }}</span>
+                {% endif %}
+
+                <strong>{{ item.count }}</strong>
+            </a>
+        {% endfor %}
+    </div>
+
+    <div class="review-list">
         {% for review in reviews %}
-            <div class="review-card">
-                <div class="review-top">
-                    <div class="avatar">
-                        {% if review.user.get_full_name %}
-                            {{ review.user.get_full_name|first|upper }}
-                        {% elif review.user.first_name %}
-                            {{ review.user.first_name|first|upper }}
-                        {% else %}
-                            K
-                        {% endif %}
-                    </div>
-
-                    <div>
-                        <h3>
-                            {% if review.user.get_full_name %}
-                                {{ review.user.get_full_name }}
-                            {% elif review.user.first_name %}
-                                {{ review.user.first_name }}
-                            {% else %}
-                                Khách hàng
-                            {% endif %}
-                        </h3>
-
-                        <span>{{ review.created_at|date:"d/m/Y" }}</span>
-                    </div>
+            <article class="review-list-card">
+                <div class="review-list-avatar">
+                    {{ review.display_name|slice:":1"|upper }}
                 </div>
 
-                <div class="review-stars">
-                    {% if review.rating == 5 %}
-                        ★★★★★
-                    {% elif review.rating == 4 %}
-                        ★★★★☆
-                    {% elif review.rating == 3 %}
-                        ★★★☆☆
-                    {% elif review.rating == 2 %}
-                        ★★☆☆☆
-                    {% else %}
-                        ★☆☆☆☆
-                    {% endif %}
-                </div>
+                <div class="review-list-content">
+                    <div class="review-list-top">
+                        <div class="review-customer">
+                            <h3>{{ review.display_name }}</h3>
+                            <time datetime="{{ review.created_at|date:'c' }}">
+                                {{ review.created_at|date:"d/m/Y H:i" }}
+                            </time>
+                        </div>
 
-                <p>
+                        <div
+                            class="review-list-stars"
+                            aria-label="{{ review.rating }} trên 5 sao"
+                        >
+                            {% for number in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <span class="star active">★</span>
+                                {% else %}
+                                    <span class="star">★</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
                     {% if review.comment %}
-                        {{ review.comment }}
+                        <p class="review-list-comment">
+                            {{ review.comment|linebreaksbr }}
+                        </p>
                     {% else %}
-                        Khách hàng chưa để lại nội dung đánh giá.
+                        <p class="review-list-comment empty">
+                            Khách hàng không để lại nội dung nhận xét.
+                        </p>
                     {% endif %}
-                </p>
-            </div>
+                </div>
+            </article>
         {% empty %}
-            <div class="empty-review">
-                Chưa có đánh giá nào cho dịch vụ này.
+            <div class="review-list-empty">
+                <div class="review-empty-icon">☆</div>
+
+                {% if selected_rating == 'all' %}
+                    <h3>Chưa có đánh giá</h3>
+                    <p>Dịch vụ này hiện chưa nhận được đánh giá nào.</p>
+                {% else %}
+                    <h3>Chưa có đánh giá {{ selected_rating }} sao</h3>
+                    <p>Hãy chọn mức sao khác để xem đánh giá.</p>
+                {% endif %}
             </div>
         {% endfor %}
     </div>
@@ -1117,8 +1136,7 @@
 
     .benefit-card,
     .content-box,
-    .addon-card,
-    .review-card {
+    .addon-card {
         background: rgba(255,255,255,0.9);
         border: 1px solid rgba(199, 91, 122, 0.14);
         box-shadow: 0 20px 55px rgba(199, 91, 122, 0.12);
@@ -1151,15 +1169,13 @@
     }
 
     .benefit-card h3,
-    .addon-card h3,
-    .review-card h3 {
+    .addon-card h3 {
         color: var(--accent);
         margin: 0 0 10px;
     }
 
     .benefit-card p,
     .addon-card p,
-    .review-card p,
     .content-box p,
     .content-box li {
         color: var(--muted);
@@ -1187,27 +1203,23 @@
         margin-bottom: 0;
     }
 
-    .addon-section,
-    .review-section {
+    .addon-section {
         margin-top: 52px;
     }
 
-    .addon-grid,
-    .review-grid {
+    .addon-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 24px;
     }
 
-    .addon-card,
-    .review-card {
+    .addon-card {
         border-radius: 30px;
         padding: 28px;
         transition: 0.3s;
     }
 
-    .addon-card:hover,
-    .review-card:hover {
+    .addon-card:hover {
         transform: translateY(-7px);
         box-shadow: 0 30px 70px rgba(199, 91, 122, 0.18);
     }
@@ -1220,53 +1232,186 @@
         font-weight: 950;
     }
 
-    .review-top {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
+    .customer-reviews {
+        margin-top: 72px;
+        scroll-margin-top: 110px;
     }
 
-    .avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #a93f61, #e79aad);
+    .rating-filter-list {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .rating-filter-btn {
+        min-height: 44px;
+        padding: 0 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: white;
+        color: var(--text);
+        font-weight: 850;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+
+    .rating-filter-btn strong {
+        min-width: 26px;
+        height: 26px;
+        padding: 0 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #fff1f5;
+        color: var(--accent);
+        font-size: 13px;
+    }
+
+    .filter-star {
+        color: #f5a623;
+        font-size: 18px;
+    }
+
+    .rating-filter-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    .rating-filter-btn.active {
+        border-color: var(--accent);
+        background: var(--accent);
         color: white;
+        box-shadow: 0 9px 22px rgba(199, 91, 122, 0.2);
+    }
+
+    .rating-filter-btn.active strong {
+        background: white;
+        color: var(--accent);
+    }
+
+    .rating-filter-btn.active .filter-star {
+        color: #ffd36a;
+    }
+
+    .review-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .review-list-card {
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr);
+        gap: 18px;
+        padding: 24px;
+        border: 1px solid rgba(199, 91, 122, 0.14);
+        border-radius: 24px;
+        background: white;
+        box-shadow: 0 13px 35px rgba(87, 53, 64, 0.07);
+        transition: 0.2s ease;
+    }
+
+    .review-list-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 17px 42px rgba(87, 53, 64, 0.11);
+    }
+
+    .review-list-avatar {
+        width: 58px;
+        height: 58px;
         display: flex;
         align-items: center;
         justify-content: center;
+        border-radius: 18px;
+        background: linear-gradient(135deg, var(--accent), #e985a2);
+        color: white;
+        font-size: 21px;
         font-weight: 950;
-        box-shadow: 0 12px 30px rgba(199, 91, 122, 0.24);
+        box-shadow: 0 8px 18px rgba(199, 91, 122, 0.2);
     }
 
-    .review-top h3 {
-        margin: 0 0 4px;
-        font-size: 17px;
+    .review-list-content {
+        min-width: 0;
     }
 
-    .review-top span {
+    .review-list-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+    }
+
+    .review-customer h3 {
+        margin: 0 0 5px;
+        color: var(--accent);
+        font-size: 18px;
+    }
+
+    .review-customer time {
         color: var(--muted);
         font-size: 13px;
         font-weight: 700;
     }
 
-    .review-stars {
-        color: #f5a623;
-        margin-bottom: 12px;
-        letter-spacing: 1px;
-        font-weight: 950;
+    .review-list-stars {
+        display: flex;
+        flex-shrink: 0;
+        gap: 2px;
     }
 
-    .empty-review {
-        grid-column: 1 / -1;
-        text-align: center;
-        background: white;
-        border: 1px dashed rgba(199, 91, 122, 0.25);
-        border-radius: 26px;
-        padding: 34px;
+    .review-list-stars .star {
+        color: #dddddd;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .review-list-stars .star.active {
+        color: #f5a623;
+    }
+
+    .review-list-comment {
+        margin: 17px 0 0;
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+    }
+
+    .review-list-comment.empty {
         color: var(--muted);
-        font-weight: 850;
+        font-style: italic;
+    }
+
+    .review-list-empty {
+        padding: 52px 24px;
+        border: 1px dashed rgba(199, 91, 122, 0.3);
+        border-radius: 24px;
+        background: #fff9fb;
+        text-align: center;
+    }
+
+    .review-empty-icon {
+        margin-bottom: 10px;
+        color: #f5a623;
+        font-size: 48px;
+    }
+
+    .review-list-empty h3 {
+        margin: 0 0 8px;
+        color: var(--text);
+    }
+
+    .review-list-empty p {
+        margin: 0;
+        color: var(--muted);
     }
 
     .image-modal {
@@ -1531,6 +1676,40 @@
 
         .modal-next {
             right: 14px;
+        }
+
+        .rating-filter-list {
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .rating-filter-btn {
+            flex-shrink: 0;
+        }
+
+        .review-list-card {
+            grid-template-columns: 46px minmax(0, 1fr);
+            gap: 13px;
+            padding: 18px;
+            border-radius: 20px;
+        }
+
+        .review-list-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            font-size: 17px;
+        }
+
+        .review-list-top {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .review-list-stars .star {
+            font-size: 18px;
         }
     }
 </style>

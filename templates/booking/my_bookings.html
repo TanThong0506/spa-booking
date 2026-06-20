@@ -136,16 +136,36 @@
         {% endif %}
 
         {% if booking.can_cancel %}
-    <div class="booking-actions">
-        <a href="{% url 'booking:cancel' booking.id %}" class="btn-cancel-booking">
-            Hủy lịch
-        </a>
-    </div>
-	{% elif booking.is_expired and booking.status != 'cancelled' and booking.status != 'completed' %}
-   		 <div class="expired-notice">
-       	 Lịch hẹn đã qua thời gian hiện tại nên không thể hủy.
-    	</div>
-	{% endif %}
+            <div class="booking-actions">
+                <a href="{% url 'booking:cancel' booking.id %}" class="btn-cancel-booking">
+                    Hủy lịch
+                </a>
+            </div>
+        {% elif booking.is_expired and booking.status != 'cancelled' and booking.status != 'completed' %}
+            <div class="expired-notice">
+                Lịch hẹn đã qua thời gian hiện tại nên không thể hủy.
+            </div>
+        {% endif %}
+
+        {% if booking.can_review %}
+            <div class="booking-actions">
+                <a
+                    href="{% url 'booking:review' booking.id %}"
+                    class="btn-review"
+                >
+                    Đánh giá dịch vụ
+                </a>
+            </div>
+        {% elif booking.has_review %}
+            <div class="booking-actions">
+                <a
+                    href="{% url 'booking:review_detail' booking.id %}"
+                    class="btn-view-review"
+                >
+                    Xem đánh giá
+                </a>
+            </div>
+        {% endif %}
 
     </article>
     {% empty %}
@@ -392,6 +412,57 @@
         color: white;
     }
 
+    .btn-review {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: white;
+        border: 1px solid var(--accent);
+        text-decoration: none;
+        font-weight: 900;
+        transition: 0.25s;
+    }
+
+    .btn-review:hover {
+        transform: translateY(-2px);
+        opacity: 0.92;
+    }
+
+    .btn-view-review {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #eafaf0;
+        color: #217a3b;
+        border: 1px solid rgba(33, 122, 59, 0.2);
+        text-decoration: none;
+        font-weight: 900;
+        transition: 0.25s;
+    }
+
+    .btn-view-review:hover {
+        background: #217a3b;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .expired-notice {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #fff8e6;
+        color: #b7791f;
+        border: 1px solid rgba(183, 121, 31, 0.2);
+        font-weight: 800;
+    }
+
     .empty-box {
         text-align: center;
         background: white;
@@ -428,7 +499,9 @@
             justify-content: stretch;
         }
 
-        .btn-cancel-booking {
+        .btn-cancel-booking,
+        .btn-review,
+        .btn-view-review {
             width: 100%;
         }
     }
