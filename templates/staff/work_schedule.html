@@ -1,0 +1,672 @@
+{% extends 'staff/base_staff.html' %}
+
+{% block title %}Lịch làm việc - Spa Booking{% endblock %}
+
+{% block content %}
+<section class="schedule-heading">
+    <div>
+        <p>Xin chào, {{ staff_name }}</p>
+        <h1>Lịch làm việc theo tuần</h1>
+        <span>
+            Chọn bất kỳ ngày nào để xem tuần chứa ngày đó.
+        </span>
+    </div>
+
+    <div class="date-filter">
+        <label for="scheduleDate">Chọn ngày</label>
+        <input
+            type="date"
+            id="scheduleDate"
+            value="{{ selected_date_iso }}"
+        >
+    </div>
+</section>
+
+<section class="week-toolbar">
+    <div class="week-actions">
+        <a href="?date={{ previous_week }}" class="week-button">
+            ← Tuần trước
+        </a>
+
+        <a href="?date={{ today_iso }}" class="week-button">
+            Hôm nay
+        </a>
+    </div>
+
+    <div class="week-title">
+        <strong>
+            {{ week_start|date:"d/m/Y" }}
+            -
+            {{ week_end|date:"d/m/Y" }}
+        </strong>
+        <span>Tuần đang hiển thị</span>
+    </div>
+
+    <a href="?date={{ next_week }}" class="week-button">
+        Tuần sau →
+    </a>
+</section>
+
+<section class="schedule-stats">
+    <article>
+        <span>Sẵn sàng</span>
+        <strong>{{ ready_count }}</strong>
+    </article>
+
+    <article>
+        <span>Đang phục vụ</span>
+        <strong>{{ serving_count }}</strong>
+    </article>
+
+    <article>
+        <span>Đã phục vụ</span>
+        <strong>{{ done_count }}</strong>
+    </article>
+
+    <article>
+        <span>Từ chối</span>
+        <strong>{{ rejected_count }}</strong>
+    </article>
+</section>
+
+<section class="schedule-box">
+    <div class="schedule-scroll">
+        <div class="schedule-grid">
+            <div class="schedule-head time-head">
+                Giờ
+            </div>
+
+            {% for day in week_days %}
+                <div class="schedule-head {% if day.is_today %}today{% endif %}">
+                    <strong>{{ day.name }}</strong>
+                    <span>{{ day.date_label }}</span>
+                </div>
+            {% endfor %}
+
+            {% for row in schedule_rows %}
+                <div class="time-cell">
+                    {{ row.time_label }}
+                </div>
+
+                {% for cell in row.cells %}
+                    <div class="schedule-cell">
+                        {% for booking in cell.bookings %}
+                            <button
+                                type="button"
+                                class="shift-card shift-{{ booking.staff_service_status }}"
+                                data-service="{{ booking.service.name|escape }}"
+                                data-customer="{{ booking.full_name|escape }}"
+                                data-phone="{{ booking.phone|escape }}"
+                                data-date="{{ booking.booking_date|date:'d/m/Y' }}"
+                                data-time="{{ booking.start_label }} - {{ booking.end_label }}"
+                                data-room="{{ booking.room_label|escape }}"
+                                data-guests="{{ booking.guest_count|default:1 }} khách"
+                                data-payment="{{ booking.get_payment_method_display|escape }}"
+                                data-status="{{ booking.get_staff_service_status_display|escape }}"
+                                data-note="{{ booking.note|default:'Không có ghi chú'|escape }}"
+                                data-message="{{ booking.time_message|escape }}"
+                                data-can-start="{% if booking.can_start_now %}1{% else %}0{% endif %}"
+                                data-can-complete="{% if booking.can_complete_now %}1{% else %}0{% endif %}"
+                                data-start-url="{% url 'staff:start_service' booking.id %}"
+                                data-complete-url="{% url 'staff:complete_service' booking.id %}"
+                            >
+                                <span>
+                                    {{ booking.start_label }}
+                                    -
+                                    {{ booking.end_label }}
+                                </span>
+
+                                <strong>{{ booking.service.name }}</strong>
+
+                                <small>
+                                    {{ booking.room_label }}
+                                </small>
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if not bookings %}
+        <div class="empty-schedule">
+            Tuần này chưa có ca làm nào được phân công.
+        </div>
+    {% endif %}
+</section>
+
+<div class="shift-modal" id="shiftModal">
+    <div class="shift-dialog">
+        <div class="modal-heading">
+            <div>
+                <p>Thông tin ca làm</p>
+                <h2 id="modalService">Dịch vụ</h2>
+            </div>
+
+            <button type="button" id="closeModal">×</button>
+        </div>
+
+        <div class="detail-grid">
+            <div><span>Khách hàng</span><strong id="modalCustomer"></strong></div>
+            <div><span>Số điện thoại</span><strong id="modalPhone"></strong></div>
+            <div><span>Ngày phục vụ</span><strong id="modalDate"></strong></div>
+            <div><span>Khung giờ</span><strong id="modalTime"></strong></div>
+            <div><span>Phòng</span><strong id="modalRoom"></strong></div>
+            <div><span>Số khách</span><strong id="modalGuests"></strong></div>
+            <div><span>Thanh toán</span><strong id="modalPayment"></strong></div>
+            <div><span>Trạng thái</span><strong id="modalStatus"></strong></div>
+            <div class="full"><span>Ghi chú</span><strong id="modalNote"></strong></div>
+        </div>
+
+        <div class="time-notice" id="timeNotice"></div>
+
+        <div class="modal-actions">
+            <form method="post" id="startForm">
+                {% csrf_token %}
+                <input type="hidden" name="return_to" value="schedule">
+                <input
+                    type="hidden"
+                    name="selected_date"
+                    value="{{ selected_date_iso }}"
+                >
+                <button type="submit" class="start-button">
+                    Bắt đầu phục vụ
+                </button>
+            </form>
+
+            <form method="post" id="completeForm">
+                {% csrf_token %}
+                <input type="hidden" name="return_to" value="schedule">
+                <input
+                    type="hidden"
+                    name="selected_date"
+                    value="{{ selected_date_iso }}"
+                >
+                <button type="submit" class="complete-button">
+                    Hoàn thành phục vụ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 22px;
+    }
+
+    .schedule-heading p {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .schedule-heading h1 {
+        margin: 0 0 8px;
+        font-size: 38px;
+    }
+
+    .schedule-heading span,
+    .date-filter label,
+    .week-title span {
+        color: var(--muted);
+    }
+
+    .date-filter {
+        width: 260px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: white;
+    }
+
+    .date-filter label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .date-filter input {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+    }
+
+    .week-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: white;
+    }
+
+    .week-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .week-button {
+        min-height: 42px;
+        padding: 0 16px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #fff8fb;
+        color: var(--accent);
+        font-weight: 900;
+    }
+
+    .week-title {
+        text-align: center;
+    }
+
+    .week-title strong,
+    .week-title span {
+        display: block;
+    }
+
+    .schedule-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .schedule-stats article {
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: white;
+    }
+
+    .schedule-stats span {
+        color: var(--muted);
+        font-weight: 800;
+    }
+
+    .schedule-stats strong {
+        display: block;
+        margin-top: 8px;
+        color: var(--accent);
+        font-size: 29px;
+    }
+
+    .schedule-box {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: white;
+        box-shadow: 0 16px 38px rgba(199, 91, 122, 0.1);
+    }
+
+    .schedule-scroll {
+        max-height: 720px;
+        overflow: auto;
+    }
+
+    .schedule-grid {
+        min-width: 1200px;
+        display: grid;
+        grid-template-columns: 86px repeat(7, minmax(150px, 1fr));
+    }
+
+    .schedule-head {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        min-height: 72px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        background: #fff1f5;
+    }
+
+    .schedule-head span {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .schedule-head.today {
+        background: var(--accent);
+        color: white;
+    }
+
+    .time-head,
+    .time-cell {
+        position: sticky;
+        left: 0;
+        z-index: 12;
+    }
+
+    .time-cell,
+    .schedule-cell {
+        min-height: 86px;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .time-cell {
+        padding: 12px 8px;
+        background: #fffafd;
+        color: var(--muted);
+        text-align: center;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .schedule-cell {
+        padding: 6px;
+    }
+
+    .shift-card {
+        width: 100%;
+        margin-bottom: 5px;
+        padding: 9px;
+        border: none;
+        border-left: 4px solid #b7791f;
+        border-radius: 11px;
+        background: #fff8e6;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .shift-card span,
+    .shift-card strong,
+    .shift-card small {
+        display: block;
+    }
+
+    .shift-card span {
+        color: var(--accent-dark);
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .shift-card strong {
+        margin: 4px 0;
+    }
+
+    .shift-card small {
+        color: var(--muted);
+    }
+
+    .shift-serving {
+        border-left-color: #1976a3;
+        background: #e9f8ff;
+    }
+
+    .shift-done {
+        border-left-color: #217a3b;
+        background: #eafaf0;
+    }
+
+    .shift-rejected {
+        border-left-color: #c0392b;
+        background: #fff0f0;
+    }
+
+    .empty-schedule {
+        padding: 26px;
+        color: var(--muted);
+        text-align: center;
+        font-weight: 800;
+    }
+
+    .shift-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(30, 18, 23, 0.5);
+    }
+
+    .shift-modal.open {
+        display: flex;
+    }
+
+    .shift-dialog {
+        width: min(620px, 100%);
+        max-height: 90vh;
+        overflow: auto;
+        padding: 28px;
+        border-radius: 24px;
+        background: white;
+    }
+
+    .modal-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .modal-heading p {
+        margin: 0 0 6px;
+        color: var(--accent);
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .modal-heading h2 {
+        margin: 0;
+    }
+
+    .modal-heading button {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: #fff1f5;
+        color: var(--accent);
+        font-size: 23px;
+        cursor: pointer;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .detail-grid div {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        background: #fff8fb;
+    }
+
+    .detail-grid .full {
+        grid-column: 1 / -1;
+    }
+
+    .detail-grid span,
+    .detail-grid strong {
+        display: block;
+    }
+
+    .detail-grid span {
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .time-notice {
+        display: none;
+        margin-top: 16px;
+        padding: 14px;
+        border: 1px solid #f1dfb8;
+        border-radius: 14px;
+        background: #fff9eb;
+        color: #966018;
+        font-weight: 800;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .modal-actions form {
+        display: none;
+    }
+
+    .modal-actions button {
+        min-height: 45px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 999px;
+        color: white;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .start-button {
+        background: #1976a3;
+    }
+
+    .complete-button {
+        background: #217a3b;
+    }
+
+    @media (max-width: 900px) {
+        .schedule-heading {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .date-filter {
+            width: 100%;
+        }
+
+        .schedule-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .week-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .schedule-stats,
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-grid .full {
+            grid-column: auto;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('scheduleDate');
+        const modal = document.getElementById('shiftModal');
+        const closeModal = document.getElementById('closeModal');
+        const startForm = document.getElementById('startForm');
+        const completeForm = document.getElementById('completeForm');
+        const timeNotice = document.getElementById('timeNotice');
+
+        dateInput.addEventListener('change', function() {
+            if (dateInput.value) {
+                window.location.href = (
+                    '?date=' + encodeURIComponent(dateInput.value)
+                );
+            }
+        });
+
+        function setText(id, value) {
+            document.getElementById(id).textContent = (
+                value || 'Không có thông tin'
+            );
+        }
+
+        function openShift(button) {
+            const data = button.dataset;
+
+            setText('modalService', data.service);
+            setText('modalCustomer', data.customer);
+            setText('modalPhone', data.phone);
+            setText('modalDate', data.date);
+            setText('modalTime', data.time);
+            setText('modalRoom', data.room);
+            setText('modalGuests', data.guests);
+            setText('modalPayment', data.payment);
+            setText('modalStatus', data.status);
+            setText('modalNote', data.note);
+
+            startForm.action = data.startUrl;
+            completeForm.action = data.completeUrl;
+
+            startForm.style.display = (
+                data.canStart === '1' ? 'block' : 'none'
+            );
+
+            completeForm.style.display = (
+                data.canComplete === '1' ? 'block' : 'none'
+            );
+
+            if (data.message) {
+                timeNotice.textContent = data.message;
+                timeNotice.style.display = 'block';
+            } else {
+                timeNotice.textContent = '';
+                timeNotice.style.display = 'none';
+            }
+
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeShift() {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.shift-card').forEach(
+            function(button) {
+                button.addEventListener('click', function() {
+                    openShift(button);
+                });
+            }
+        );
+
+        closeModal.addEventListener('click', closeShift);
+
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeShift();
+            }
+        });
+    });
+</script>
+{% endblock %}

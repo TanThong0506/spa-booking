@@ -4,6 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Nhân viên - Spa Booking{% endblock %}</title>
 
     <style>
@@ -94,7 +95,7 @@
         }
 
         .staff-container {
-            max-width: 1180px;
+            max-width: 1480px;
             margin: 0 auto;
             padding: 36px 20px 70px;
         }
@@ -122,6 +123,11 @@
         .message.error {
             background: #fff0f0;
             color: #c0392b;
+        }
+
+        .message.info {
+            background: #e9f8ff;
+            color: #1976a3;
         }
 
         .btn {
@@ -181,10 +187,10 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-
 <header class="staff-header">
     <div class="staff-brand">
         <div class="staff-logo">🌸</div>
+
         <div>
             <h1>Spa Booking Staff</h1>
             <p>Trang làm việc dành cho nhân viên</p>
@@ -192,8 +198,13 @@
     </div>
 
     <div class="staff-nav">
-        <a href="{% url 'staff:dashboard' %}">Lịch phục vụ</a>
-        <a href="{% url 'home' %}">Về trang chủ</a>
+        <a href="{% url 'staff:dashboard' %}">
+            Lịch phục vụ
+        </a>
+
+        <a href="{% url 'staff:schedule' %}">
+            Lịch làm việc
+        </a>
 
         <form action="{% url 'accounts:logout' %}" method="post">
             {% csrf_token %}
@@ -215,6 +226,5 @@
 
     {% block content %}{% endblock %}
 </main>
-
 </body>
 </html>
