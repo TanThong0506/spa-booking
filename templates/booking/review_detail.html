@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+
+{% block title %}Xem đánh giá - Spa Booking{% endblock %}
+
+{% block content %}
+<section class="review-page">
+    <div class="review-card">
+
+        <div class="review-heading">
+            <span class="review-badge">Đánh giá của bạn</span>
+
+            <h1>{{ booking.service.name }}</h1>
+
+            <p class="service-time">
+                Dịch vụ đã hoàn thành ngày
+                <strong>{{ booking.booking_date|date:"d/m/Y" }}</strong>
+                lúc
+                <strong>{{ booking.booking_time|time:"H:i" }}</strong>
+            </p>
+        </div>
+
+        <div class="review-result">
+            <div class="rating-area">
+                <div class="rating-stars" aria-label="{{ review.rating }} trên 5 sao">
+                    {% for number in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <span class="star active">★</span>
+                        {% else %}
+                            <span class="star">★</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="rating-summary">
+                    <strong>{{ review.rating }}/5</strong>
+                    <span>
+                        {% if review.rating == 5 %}
+                            Rất hài lòng
+                        {% elif review.rating == 4 %}
+                            Hài lòng
+                        {% elif review.rating == 3 %}
+                            Bình thường
+                        {% elif review.rating == 2 %}
+                            Chưa hài lòng
+                        {% else %}
+                            Không hài lòng
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="comment-box">
+                <div class="comment-title">
+                    <span class="comment-icon">✦</span>
+                    <strong>Nội dung đánh giá</strong>
+                </div>
+
+                {% if review.comment %}
+                    <p>{{ review.comment|linebreaksbr }}</p>
+                {% else %}
+                    <p class="empty-comment">
+                        Bạn không nhập nội dung nhận xét cho đánh giá này.
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="review-footer">
+                <p class="created-at">
+                    Đã đánh giá lúc
+                    <strong>{{ review.created_at|date:"H:i d/m/Y" }}</strong>
+                </p>
+
+                <a href="{% url 'booking:mine' %}" class="btn-back">
+                    <span>←</span>
+                    Quay lại lịch đã đặt
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .review-page {
+        min-height: 72vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 56px 16px;
+    }
+
+    .review-card {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        padding: 42px;
+        overflow: hidden;
+        border: 1px solid rgba(199, 91, 122, 0.18);
+        border-radius: 32px;
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(199, 91, 122, 0.11),
+                transparent 34%
+            ),
+            #ffffff;
+        box-shadow:
+            0 24px 65px rgba(72, 42, 52, 0.12),
+            0 8px 24px rgba(199, 91, 122, 0.08);
+    }
+
+    .review-card::before {
+        content: "";
+        position: absolute;
+        top: -85px;
+        right: -85px;
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        background: rgba(199, 91, 122, 0.07);
+        pointer-events: none;
+    }
+
+    .review-heading {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .review-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 16px;
+        margin-bottom: 14px;
+        border: 1px solid rgba(199, 91, 122, 0.18);
+        border-radius: 999px;
+        background: #fff3f7;
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+    }
+
+    .review-heading h1 {
+        margin: 0 0 12px;
+        color: var(--text);
+        font-size: clamp(30px, 5vw, 42px);
+        line-height: 1.2;
+    }
+
+    .service-time {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.8;
+    }
+
+    .service-time strong {
+        color: var(--text);
+    }
+
+    .review-result {
+        position: relative;
+        z-index: 1;
+    }
+
+    .rating-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 26px;
+        padding: 24px;
+        border: 1px solid rgba(245, 166, 35, 0.2);
+        border-radius: 22px;
+        background: linear-gradient(135deg, #fffaf0, #fffdf9);
+    }
+
+    .rating-stars {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .star {
+        color: #e4e4e4;
+        font-size: 42px;
+        line-height: 1;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .star.active {
+        color: #f5a623;
+        text-shadow: 0 7px 16px rgba(245, 166, 35, 0.24);
+    }
+
+    .rating-summary {
+        display: grid;
+        gap: 3px;
+        text-align: left;
+    }
+
+    .rating-summary strong {
+        color: #f29a13;
+        font-size: 34px;
+        line-height: 1;
+    }
+
+    .rating-summary span {
+        color: #9a6a1c;
+        font-weight: 800;
+    }
+
+    .comment-box {
+        margin: 24px 0;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        background: #fff8fb;
+        text-align: left;
+    }
+
+    .comment-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 13px;
+        color: var(--accent);
+    }
+
+    .comment-title strong {
+        font-size: 17px;
+    }
+
+    .comment-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #ffe7ef;
+        color: var(--accent);
+        font-size: 16px;
+    }
+
+    .comment-box p {
+        margin: 0;
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1.85;
+        overflow-wrap: anywhere;
+    }
+
+    .comment-box .empty-comment {
+        color: var(--muted);
+        font-style: italic;
+    }
+
+    .review-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding-top: 4px;
+    }
+
+    .created-at {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .created-at strong {
+        color: var(--text);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 0 24px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--accent);
+        color: #ffffff;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow: 0 10px 24px rgba(199, 91, 122, 0.2);
+        transition:
+            transform 0.2s ease,
+            opacity 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .btn-back:hover {
+        color: #ffffff;
+        opacity: 0.94;
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(199, 91, 122, 0.27);
+    }
+
+    @media (max-width: 680px) {
+        .review-page {
+            padding: 30px 12px;
+        }
+
+        .review-card {
+            padding: 28px 18px;
+            border-radius: 24px;
+        }
+
+        .rating-area {
+            flex-direction: column;
+            gap: 13px;
+            padding: 20px 14px;
+        }
+
+        .rating-summary {
+            text-align: center;
+        }
+
+        .star {
+            font-size: 37px;
+        }
+
+        .review-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .created-at {
+            text-align: center;
+        }
+
+        .btn-back {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .star {
+            font-size: 32px;
+        }
+
+        .comment-box {
+            padding: 19px;
+        }
+    }
+</style>
+{% endblock %}
