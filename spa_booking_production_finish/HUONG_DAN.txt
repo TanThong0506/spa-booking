@@ -1,0 +1,85 @@
+HOÀN THIỆN PRODUCTION CHO SPA BOOKING
+
+TRẠNG THÁI ĐƯỢC SỬA
+- settings.py đọc SECRET_KEY, DEBUG, ALLOWED_HOSTS và DATABASE_URL.
+- PostgreSQL Render được cấu hình bằng DATABASE_URL.
+- WhiteNoise phục vụ static files.
+- /api/health/ kiểm tra cả ứng dụng và database.
+- Docker chạy migrate trước khi khởi động Gunicorn.
+- GitHub Packages có workflow chạy tự động hoặc chạy thủ công.
+- Render Blueprint dùng Docker runtime và chỉ deploy sau khi CI pass.
+
+BƯỚC 1 — GIẢI NÉN
+Giải nén thư mục spa_booking_production_finish vào:
+D:\spa_booking
+
+Phải có:
+D:\spa_booking\spa_booking_production_finish\deploy_production.ps1
+
+BƯỚC 2 — MỞ DOCKER DESKTOP
+Chờ Docker Desktop hiện Engine running.
+
+BƯỚC 3 — CHẠY SCRIPT
+PowerShell:
+
+cd D:\spa_booking
+powershell -ExecutionPolicy Bypass -File "D:\spa_booking\spa_booking_production_finish\deploy_production.ps1"
+
+Script sẽ:
+- cập nhật main;
+- tạo nhánh fix;
+- chép các file production;
+- kiểm tra Django;
+- migrate SQLite để kiểm tra;
+- kiểm tra /api/health/;
+- build Docker;
+- commit, push và tạo Pull Request.
+
+BƯỚC 4 — MERGE PULL REQUEST
+Chờ:
+- Django Check And Test: xanh
+- Docker Build: xanh
+
+Sau đó Merge pull request.
+
+BƯỚC 5 — PUBLISH GITHUB PACKAGE
+Sau khi merge:
+
+cd D:\spa_booking
+powershell -ExecutionPolicy Bypass -File "D:\spa_booking\spa_booking_production_finish\after_merge.ps1"
+
+Kết quả:
+ghcr.io/tanthong0506/spa-booking:latest
+
+BƯỚC 6 — RENDER
+Render Dashboard
+-> New
+-> Blueprint
+-> Connect GitHub
+-> chọn TanThong0506/spa-booking
+-> Blueprint file: render.yaml
+-> Apply
+
+Render tạo:
+- spa-booking-docker
+- spa-booking-docker-db
+
+BƯỚC 7 — KIỂM TRA
+Mở URL do Render cấp:
+https://<ten-service>.onrender.com/api/health/
+
+Kết quả mong đợi:
+{
+  "status": "ok",
+  "service": "spa-booking",
+  "database": "ok"
+}
+
+BƯỚC 8 — TẠO ADMIN TRÊN RENDER
+Trong Render service:
+Shell -> chạy:
+
+python manage.py createsuperuser
+
+Nếu gói miễn phí không có Shell, thêm tạm lệnh tạo superuser bằng Render Job
+hoặc dùng biến môi trường + management command riêng.
