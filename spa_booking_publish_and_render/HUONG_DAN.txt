@@ -1,0 +1,79 @@
+HOÀN THIỆN DOCKER PACKAGE VÀ RENDER DEPLOY
+
+1. MỤC TIÊU
+
+- Build và push image lên:
+  ghcr.io/tanthong0506/spa-booking:latest
+
+- Tạo Docker service trên Render.
+- Chỉ deploy sau khi GitHub Actions trên main thành công.
+- Tự động migrate database trước khi Gunicorn khởi động.
+- Health check:
+  /api/health/
+
+2. GIẢI NÉN
+
+Giải nén thư mục spa_booking_publish_and_render vào:
+
+D:\spa_booking
+
+3. CHẠY SCRIPT
+
+cd D:\spa_booking
+
+powershell -ExecutionPolicy Bypass `
+  -File .\spa_booking_publish_and_render\deploy_publish.ps1
+
+4. SAU KHI TẠO PULL REQUEST
+
+Chờ các checks:
+
+Django Check And Test
+Docker Build
+
+chuyển sang màu xanh rồi Merge Pull Request.
+
+5. KIỂM TRA GITHUB PACKAGE
+
+Sau khi merge, workflow "Publish Docker Package" chạy.
+
+Image được publish:
+
+ghcr.io/tanthong0506/spa-booking:latest
+ghcr.io/tanthong0506/spa-booking:sha-<commit-sha>
+
+6. TẠO RENDER BLUEPRINT
+
+Render Dashboard
+→ New
+→ Blueprint
+→ Chọn repository TanThong0506/spa-booking
+→ Blueprint path: render.yaml
+→ Apply
+
+Render tạo:
+
+- spa-booking-docker
+- spa-booking-docker-db
+
+7. KIỂM TRA RENDER
+
+Mở:
+
+https://spa-booking-docker.onrender.com/api/health/
+
+Tên URL thật có thể được Render thêm hậu tố nếu tên đã tồn tại.
+
+Kết quả mong đợi:
+
+{
+  "status": "ok",
+  "service": "spa-booking",
+  "database": "ok"
+}
+
+8. LƯU Ý
+
+- Render Free web service có thể sleep khi không sử dụng.
+- Render Free PostgreSQL hết hạn sau 30 ngày.
+- File media tải lên web service miễn phí không bền vững qua các lần deploy.
