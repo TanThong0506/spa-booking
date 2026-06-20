@@ -3,91 +3,450 @@
 {% block title %}Đăng ký - Spa Booking{% endblock %}
 
 {% block content %}
-<section style="max-width: 600px; margin: 40px auto; background: #fff; border: 1px solid rgba(199, 91, 122, 0.12); border-radius: 28px; padding: 32px; box-shadow: 0 18px 50px rgba(199, 91, 122, 0.08);">
-    <p style="color: #c75b7a; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px;">
-        Tài khoản
-    </p>
+<section class="register-page">
+    <div class="register-card">
+        <div class="register-heading">
+            <p>Tài khoản</p>
 
-    <h1 style="margin: 0 0 12px; font-size: 36px; color: #2b2b2b;">
-        Đăng ký
-    </h1>
+            <h1>Đăng ký</h1>
 
-    <p style="margin: 0 0 24px; color: #666; line-height: 1.7;">
-        Tạo tài khoản để đặt lịch spa và theo dõi lịch hẹn của bạn.
-    </p>
+            <span>
+                Tạo tài khoản để đặt lịch spa và theo dõi lịch hẹn của bạn.
+            </span>
+        </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div style="background: #fff1f5; color: #a84363; border: 1px solid rgba(199, 91, 122, 0.2); padding: 14px 16px; border-radius: 16px; margin-bottom: 20px;">
-                {{ message }}
+        {% if messages %}
+            <div class="message-list">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-    {% endif %}
+        {% endif %}
 
-    <form method="post" action="{% url 'accounts:register' %}" style="display: grid; gap: 16px;">
-        {% csrf_token %}
+        <form
+            method="post"
+            action="{% url 'accounts:register' %}"
+            class="register-form"
+        >
+            {% csrf_token %}
 
-        <label>
-            Tên
-            <input type="text" name="name" placeholder="Nhập tên của bạn" required>
-        </label>
+            <div class="form-group">
+                <label for="id_name">Tên</label>
 
-        <label>
-            Số điện thoại
-            <input type="text" name="phone" placeholder="Nhập số điện thoại" required>
-        </label>
+                <input
+                    type="text"
+                    name="name"
+                    id="id_name"
+                    value="{{ request.POST.name|default:'' }}"
+                    placeholder="Nhập tên của bạn"
+                    autocomplete="name"
+                    required
+                >
+            </div>
 
-        <label>
-            Email
-            <input type="email" name="email" placeholder="Nhập email" required>
-        </label>
+            <div class="form-group">
+                <label for="id_phone">Số điện thoại</label>
 
-        <label>
-            Mật khẩu
-            <input type="password" name="password1" placeholder="Nhập mật khẩu tối thiểu 6 ký tự" required>
-        </label>
+                <input
+                    type="text"
+                    name="phone"
+                    id="id_phone"
+                    value="{{ request.POST.phone|default:'' }}"
+                    placeholder="Nhập số điện thoại"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    required
+                >
+            </div>
 
-        <label>
-            Xác nhận mật khẩu
-            <input type="password" name="password2" placeholder="Nhập lại mật khẩu" required>
-        </label>
+            <div class="form-group">
+                <label for="id_email">Email</label>
 
-        <button type="submit" class="btn" style="width: 100%;">
-            Đăng ký
-        </button>
-    </form>
+                <input
+                    type="email"
+                    name="email"
+                    id="id_email"
+                    value="{{ request.POST.email|default:'' }}"
+                    placeholder="Nhập email"
+                    autocomplete="email"
+                    required
+                >
+            </div>
 
-    <p style="text-align: center; margin-top: 22px; color: #666;">
-        Đã có tài khoản?
-        <a href="{% url 'accounts:login' %}" style="color: #c75b7a; font-weight: 800;">
-            Đăng nhập
-        </a>
-    </p>
+            <div class="form-group">
+                <label for="id_password1">Mật khẩu</label>
+
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        name="password1"
+                        id="id_password1"
+                        placeholder="Nhập mật khẩu tối thiểu 6 ký tự"
+                        autocomplete="new-password"
+                        minlength="6"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        data-password-target="id_password1"
+                        aria-label="Hiện mật khẩu"
+                        title="Hiện mật khẩu"
+                    >
+                        <svg
+                            class="eye-open"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                            ></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+
+                        <svg
+                            class="eye-closed"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path d="M3 3l18 18"></path>
+                            <path
+                                d="M10.6 6.2A10.6 10.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.7"
+                            ></path>
+                            <path
+                                d="M6.2 6.2C3.5 8 2 12 2 12s3.5 6 10 6a10 10 0 0 0 4.1-.8"
+                            ></path>
+                            <path
+                                d="M9.9 9.9A3 3 0 0 0 14.1 14.1"
+                            ></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <small class="field-help">
+                    Mật khẩu phải có ít nhất 6 ký tự.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password2">Xác nhận mật khẩu</label>
+
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        name="password2"
+                        id="id_password2"
+                        placeholder="Nhập lại mật khẩu"
+                        autocomplete="new-password"
+                        minlength="6"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        data-password-target="id_password2"
+                        aria-label="Hiện mật khẩu"
+                        title="Hiện mật khẩu"
+                    >
+                        <svg
+                            class="eye-open"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+                            ></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+
+                        <svg
+                            class="eye-closed"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path d="M3 3l18 18"></path>
+                            <path
+                                d="M10.6 6.2A10.6 10.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.7"
+                            ></path>
+                            <path
+                                d="M6.2 6.2C3.5 8 2 12 2 12s3.5 6 10 6a10 10 0 0 0 4.1-.8"
+                            ></path>
+                            <path
+                                d="M9.9 9.9A3 3 0 0 0 14.1 14.1"
+                            ></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn register-submit">
+                Đăng ký
+            </button>
+        </form>
+
+        <p class="login-link">
+            Đã có tài khoản?
+
+            <a href="{% url 'accounts:login' %}">
+                Đăng nhập
+            </a>
+        </p>
+    </div>
 </section>
 
+<script>
+    const togglePasswordButtons = document.querySelectorAll(
+        '.toggle-password'
+    );
+
+    togglePasswordButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const targetId = button.getAttribute(
+                'data-password-target'
+            );
+
+            const passwordInput = document.getElementById(targetId);
+
+            if (!passwordInput) {
+                return;
+            }
+
+            const passwordIsHidden =
+                passwordInput.type === 'password';
+
+            passwordInput.type = passwordIsHidden
+                ? 'text'
+                : 'password';
+
+            button.classList.toggle(
+                'showing',
+                passwordIsHidden
+            );
+
+            const buttonText = passwordIsHidden
+                ? 'Ẩn mật khẩu'
+                : 'Hiện mật khẩu';
+
+            button.setAttribute('aria-label', buttonText);
+            button.setAttribute('title', buttonText);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
 <style>
-    label {
+    .register-page {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 600px;
+        padding: 34px;
+        border: 1px solid rgba(199, 91, 122, 0.12);
+        border-radius: 28px;
+        background: #ffffff;
+        box-shadow: 0 18px 50px rgba(199, 91, 122, 0.08);
+    }
+
+    .register-heading {
+        margin-bottom: 24px;
+    }
+
+    .register-heading p {
+        margin: 0 0 10px;
+        color: var(--accent);
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .register-heading h1 {
+        margin: 0 0 12px;
+        color: var(--text);
+        font-size: 36px;
+    }
+
+    .register-heading span {
+        color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .message-list {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .message {
+        padding: 14px 16px;
+        border: 1px solid rgba(199, 91, 122, 0.2);
+        border-radius: 16px;
+        background: #fff1f5;
+        color: var(--accent-strong);
+        font-weight: 800;
+    }
+
+    .message.error {
+        border-color: rgba(192, 57, 43, 0.2);
+        background: #fff0f0;
+        color: #c0392b;
+    }
+
+    .message.success {
+        border-color: rgba(33, 122, 59, 0.2);
+        background: #f0fff4;
+        color: #217a3b;
+    }
+
+    .register-form {
+        display: grid;
+        gap: 18px;
+    }
+
+    .form-group {
         display: grid;
         gap: 8px;
-        font-weight: 700;
-        color: #2b2b2b;
     }
 
-    input {
+    .form-group label {
+        color: var(--text);
+        font-weight: 800;
+    }
+
+    .register-form input {
         width: 100%;
-        min-height: 48px;
-        border-radius: 14px;
+        min-height: 50px;
+        margin: 0;
+        padding: 0 16px;
         border: 1px solid rgba(199, 91, 122, 0.2);
-        padding: 0 14px;
+        border-radius: 14px;
+        background: #ffffff;
+        color: var(--text);
         font: inherit;
         outline: none;
-        background: #fff;
-        margin-top: 8px;
+        box-sizing: border-box;
     }
 
-    input:focus {
-        border-color: #c75b7a;
+    .register-form input:focus {
+        border-color: var(--accent);
         box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+    }
+
+    .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .password-wrapper input {
+        padding-right: 58px;
+    }
+
+    .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translateY(-50%);
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: #777777;
+        cursor: pointer;
+        z-index: 2;
+        transition:
+            color 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .toggle-password:hover {
+        color: var(--accent);
+        background: rgba(199, 91, 122, 0.08);
+    }
+
+    .toggle-password:focus-visible {
+        outline: 3px solid rgba(199, 91, 122, 0.2);
+    }
+
+    .toggle-password svg {
+        width: 23px;
+        height: 23px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .toggle-password .eye-closed {
+        display: none;
+    }
+
+    .toggle-password.showing .eye-open {
+        display: none;
+    }
+
+    .toggle-password.showing .eye-closed {
+        display: block;
+    }
+
+    .field-help {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .register-submit {
+        width: 100%;
+        min-height: 50px;
+        margin-top: 2px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .login-link {
+        margin: 24px 0 0;
+        color: var(--muted);
+        text-align: center;
+    }
+
+    .login-link a {
+        color: var(--accent);
+        font-weight: 900;
+    }
+
+    .login-link a:hover {
+        color: var(--accent-strong);
+    }
+
+    @media (max-width: 600px) {
+        .register-page {
+            padding: 28px 10px;
+        }
+
+        .register-card {
+            padding: 26px 20px;
+            border-radius: 22px;
+        }
+
+        .register-heading h1 {
+            font-size: 31px;
+        }
     }
 </style>
 {% endblock %}

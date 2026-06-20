@@ -384,6 +384,139 @@
             color: var(--accent);
         }
 
+        .nav-booking-trigger,
+        .footer-booking-trigger {
+            border: none;
+            padding: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .nav-booking-trigger {
+            white-space: nowrap;
+            font-weight: 700;
+        }
+
+        .footer-booking-trigger {
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .nav-booking-trigger:hover,
+        .footer-booking-trigger:hover {
+            color: var(--accent);
+        }
+
+        .login-required-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(35, 18, 25, 0.68);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-required-modal.show {
+            display: flex;
+        }
+
+        .login-required-dialog {
+            position: relative;
+            width: min(460px, 100%);
+            padding: 38px 32px 32px;
+            border: 1px solid rgba(199, 91, 122, 0.18);
+            border-radius: 30px;
+            background: #ffffff;
+            text-align: center;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+        }
+
+        .login-required-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #c75b7a, #e79aad);
+            color: #ffffff;
+            font-size: 34px;
+            font-weight: 900;
+            box-shadow: 0 16px 36px rgba(199, 91, 122, 0.28);
+        }
+
+        .login-required-dialog h3 {
+            margin: 0 0 12px;
+            color: var(--text);
+            font-size: 28px;
+        }
+
+        .login-required-dialog p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .login-required-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .login-required-actions a,
+        .login-required-actions button {
+            min-height: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            font: inherit;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .login-required-login {
+            border: 1px solid var(--accent);
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        .login-required-login:hover {
+            background: var(--accent-strong);
+            border-color: var(--accent-strong);
+            color: #ffffff;
+        }
+
+        .login-required-cancel {
+            border: 1px solid var(--border);
+            background: #fff8fb;
+            color: var(--accent);
+        }
+
+        .login-required-close {
+            position: absolute;
+            top: 15px;
+            right: 16px;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: #fff1f5;
+            color: var(--accent);
+            font-size: 25px;
+            cursor: pointer;
+        }
+
         /* RESPONSIVE */
         @media (max-width: 1200px) {
             .header-inner {
@@ -426,6 +559,15 @@
         }
 
         @media (max-width: 600px) {
+            .login-required-dialog {
+                padding: 34px 20px 24px;
+                border-radius: 24px;
+            }
+
+            .login-required-actions {
+                grid-template-columns: 1fr;
+            }
+
             .brand {
                 font-size: 24px;
             }
@@ -500,7 +642,19 @@
             <nav class="nav-links">
                 <a href="{% url 'home' %}">Trang chủ</a>
                 <a href="{% url 'services:list' %}">Dịch vụ</a>
-                <a href="{% url 'booking:form' %}">Đặt lịch</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'booking:form' %}">
+                        Đặt lịch
+                    </a>
+                {% else %}
+                    <button
+                        type="button"
+                        class="nav-booking-trigger"
+                        data-open-login-required
+                    >
+                        Đặt lịch
+                    </button>
+                {% endif %}
 
                 <form class="nav-search" action="{% url 'services:list' %}" method="get">
                     <input
@@ -534,10 +688,14 @@
 
                     <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
                         {% csrf_token %}
-                        <button type="submit" class="btn-login">Đăng xuất</button>
+                        <button type="submit" class="btn-login">
+                            Đăng xuất
+                        </button>
                     </form>
                 {% else %}
-                    <a href="{% url 'accounts:login' %}" class="btn-login">Đăng nhập</a>
+                    <a href="{% url 'accounts:login' %}" class="btn-login">
+                        Đăng nhập
+                    </a>
                 {% endif %}
 
 
@@ -549,6 +707,57 @@
         {% block content %}
         {% endblock %}
     </main>
+
+    {% if not user.is_authenticated %}
+        <div
+            class="login-required-modal"
+            id="loginRequiredModal"
+            aria-hidden="true"
+        >
+            <div
+                class="login-required-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="loginRequiredTitle"
+            >
+                <button
+                    type="button"
+                    class="login-required-close"
+                    data-close-login-required
+                    aria-label="Đóng"
+                >
+                    ×
+                </button>
+
+                <div class="login-required-icon">!</div>
+
+                <h3 id="loginRequiredTitle">
+                    Bạn chưa đăng nhập
+                </h3>
+
+                <p>
+                    Vui lòng đăng nhập để có thể đặt lịch sử dụng dịch vụ.
+                </p>
+
+                <div class="login-required-actions">
+                    <a
+                        href="{% url 'accounts:login' %}?next={% url 'booking:form' %}"
+                        class="login-required-login"
+                    >
+                        Đăng nhập
+                    </a>
+
+                    <button
+                        type="button"
+                        class="login-required-cancel"
+                        data-close-login-required
+                    >
+                        Hủy
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 
     <footer class="site-footer">
         <div class="footer-inner">
@@ -577,7 +786,23 @@
                     <ul>
                         <li><a href="{% url 'home' %}">Trang chủ</a></li>
                         <li><a href="{% url 'services:list' %}">Dịch vụ</a></li>
-                        <li><a href="{% url 'booking:form' %}">Đặt lịch</a></li>
+                        {% if user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'booking:form' %}">
+                                    Đặt lịch
+                                </a>
+                            </li>
+                        {% else %}
+                            <li>
+                                <button
+                                    type="button"
+                                    class="footer-booking-trigger"
+                                    data-open-login-required
+                                >
+                                    Đặt lịch
+                                </button>
+                            </li>
+                        {% endif %}
                         <li><a href="/admin/">Quản trị</a></li>
                     </ul>
                 </div>
@@ -624,5 +849,72 @@
             </div>
         </div>
     </footer>
+
+    {% if not user.is_authenticated %}
+        <script>
+            const loginRequiredModal = document.getElementById(
+                'loginRequiredModal'
+            );
+
+            const openLoginRequiredButtons = document.querySelectorAll(
+                '[data-open-login-required]'
+            );
+
+            const closeLoginRequiredButtons = document.querySelectorAll(
+                '[data-close-login-required]'
+            );
+
+            function openLoginRequiredModal() {
+                if (!loginRequiredModal) {
+                    return;
+                }
+
+                loginRequiredModal.classList.add('show');
+                loginRequiredModal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLoginRequiredModal() {
+                if (!loginRequiredModal) {
+                    return;
+                }
+
+                loginRequiredModal.classList.remove('show');
+                loginRequiredModal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            openLoginRequiredButtons.forEach(function(button) {
+                button.addEventListener(
+                    'click',
+                    openLoginRequiredModal
+                );
+            });
+
+            closeLoginRequiredButtons.forEach(function(button) {
+                button.addEventListener(
+                    'click',
+                    closeLoginRequiredModal
+                );
+            });
+
+            if (loginRequiredModal) {
+                loginRequiredModal.addEventListener(
+                    'click',
+                    function(event) {
+                        if (event.target === loginRequiredModal) {
+                            closeLoginRequiredModal();
+                        }
+                    }
+                );
+            }
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeLoginRequiredModal();
+                }
+            });
+        </script>
+    {% endif %}
 </body>
 </html>
