@@ -1,0 +1,7 @@
+Django==6.0.4
+dj-database-url>=2.2
+gunicorn>=23.0
+mysqlclient>=2.2
+Pillow>=11.0
+psycopg[binary]>=3.2
+whitenoise[brotli]>=6.8

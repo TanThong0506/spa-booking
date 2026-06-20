@@ -1,0 +1,53 @@
+databases:
+  - name: spa-booking-db
+    databaseName: spa_booking
+    user: spa_booking_user
+    plan: free
+    region: singapore
+
+services:
+  - type: web
+    name: spa-booking
+    runtime: python
+    plan: free
+    region: singapore
+    branch: main
+
+    buildCommand: bash build.sh
+
+    startCommand: >-
+      gunicorn spa_booking.wsgi:application
+      --bind 0.0.0.0:$PORT
+      --workers 2
+      --threads 4
+      --timeout 120
+      --access-logfile -
+
+    healthCheckPath: /api/health/
+
+    # Render chỉ deploy sau khi GitHub Actions chạy thành công.
+    autoDeployTrigger: checksPass
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.5
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DEBUG
+        value: "False"
+
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: spa-booking-db
+          property: connectionString
