@@ -1,32 +1,38 @@
 """URL configuration for spa_booking project."""
 
+from importlib.util import find_spec
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
 from services.views import home
+from spa_booking.views import health_check
 
 
-admin.site.site_header = 'Spa Booking Admin'
-admin.site.site_title = 'Spa Booking'
-admin.site.index_title = 'Bảng điều khiển quản trị'
+admin.site.site_header = "Spa Booking Admin"
+admin.site.site_title = "Spa Booking"
+admin.site.index_title = "Bảng điều khiển quản trị"
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', home, name='home'),
-    path('services/', include('services.urls')),
-    path('booking/', include('booking.urls')),
-    path('staff/', include('staff.urls')),
-    path('accounts/', include('accounts.urls')),
+    path("admin/", admin.site.urls),
+    path("", home, name="home"),
+    path("api/health/", health_check, name="health_check"),
+    path("services/", include("services.urls")),
+    path("booking/", include("booking.urls")),
+    path("staff/", include("staff.urls")),
+    path("accounts/", include("accounts.urls")),
 ]
 
 
-handler400 = 'spa_booking.error_handlers.bad_request'
-handler403 = 'spa_booking.error_handlers.permission_denied'
-handler404 = 'spa_booking.error_handlers.page_not_found'
-handler500 = 'spa_booking.error_handlers.server_error'
+# Giữ các trang lỗi tùy chỉnh nếu dự án đã có module error_handlers.
+if find_spec("spa_booking.error_handlers") is not None:
+    handler400 = "spa_booking.error_handlers.bad_request"
+    handler403 = "spa_booking.error_handlers.permission_denied"
+    handler404 = "spa_booking.error_handlers.page_not_found"
+    handler500 = "spa_booking.error_handlers.server_error"
 
 
 if settings.DEBUG:
