@@ -173,6 +173,7 @@ class BookingAdmin(admin.ModelAdmin):
         'staff',
         'staff_service_status',
         'refund_status',
+        'refund_account_info',
     )
 
     list_filter = (
@@ -196,6 +197,9 @@ class BookingAdmin(admin.ModelAdmin):
         'staff__last_name',
         'staff__profile__name',
         'staff_reject_reason',
+        'refund_bank_name',
+        'refund_account_number',
+        'refund_account_name',
     )
 
     list_editable = (
@@ -217,6 +221,9 @@ class BookingAdmin(admin.ModelAdmin):
         'staff_started_at',
         'staff_completed_at',
         'staff_rejected_at',
+        'refund_bank_name',
+        'refund_account_number',
+        'refund_account_name',
     )
 
     fieldsets = (
@@ -287,6 +294,23 @@ class BookingAdmin(admin.ModelAdmin):
         'staff',
         'user',
     )
+
+    @admin.display(description='Tài khoản hoàn tiền')
+    def refund_account_info(self, obj):
+        if (
+            obj.payment_method
+            != Booking.PaymentMethod.TRANSFER
+        ):
+            return 'Không áp dụng'
+
+        if not obj.refund_account_number:
+            return 'Chưa có thông tin'
+
+        return (
+            f'{obj.refund_bank_name} - '
+            f'{obj.refund_account_number} - '
+            f'{obj.refund_account_name}'
+        )
 
     def get_queryset(self, request):
         Booking.update_missed_bookings()

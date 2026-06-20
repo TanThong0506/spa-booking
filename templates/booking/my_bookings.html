@@ -7,7 +7,7 @@
 <section class="page-title">
     <p>Lịch hẹn của bạn</p>
     <h1>Các lịch đã đặt</h1>
-    <span>Theo dõi trạng thái lịch hẹn, phòng, nhân viên phục vụ và hoàn tiền nếu có.</span>
+    <span>Theo dõi trạng thái lịch hẹn, phòng phục vụ, nhân viên và hoàn tiền nếu có.</span>
 </section>
 
 {% if messages %}
@@ -38,22 +38,22 @@
         <div class="booking-info-grid">
             <div class="booking-info-item">
                 <span>Ngày đặt</span>
-                <strong>{{ booking.booking_date }}</strong>
+                <strong>{{ booking.booking_date|date:"d/m/Y" }}</strong>
             </div>
 
             <div class="booking-info-item">
                 <span>Giờ đặt</span>
-                <strong>{{ booking.booking_time }}</strong>
-            </div>
-
-            <div class="booking-info-item">
-                <span>Thanh toán</span>
-                <strong>{{ booking.get_payment_method_display }}</strong>
+                <strong>{{ booking.booking_time|time:"H:i" }}</strong>
             </div>
 
             <div class="booking-info-item">
                 <span>Số lượng khách</span>
                 <strong>{{ booking.guest_count|default:1 }} khách</strong>
+            </div>
+
+            <div class="booking-info-item">
+                <span>Thanh toán</span>
+                <strong>{{ booking.get_payment_method_display }}</strong>
             </div>
 
             <div class="booking-info-item">
@@ -123,7 +123,7 @@
                 {% if booking.cancelled_at %}
                     <p>
                         <strong>Thời gian hủy:</strong>
-                        {{ booking.cancelled_at }}
+                        {{ booking.cancelled_at|date:"d/m/Y H:i" }}
                     </p>
                 {% endif %}
 
@@ -149,7 +149,7 @@
                         {% if booking.refunded_at %}
                             <p>
                                 <strong>Thời gian hoàn tiền:</strong>
-                                {{ booking.refunded_at }}
+                                {{ booking.refunded_at|date:"d/m/Y H:i" }}
                             </p>
                         {% endif %}
                     {% endif %}
@@ -159,33 +159,23 @@
 
         {% if booking.can_cancel %}
             <div class="booking-actions">
-                <a href="{% url 'booking:cancel' booking.id %}" class="btn-cancel-booking">
+                <a
+                    href="{% url 'booking:update' booking.id %}"
+                    class="btn-update-booking"
+                >
+                    Cập nhật lịch đặt
+                </a>
+
+                <a
+                    href="{% url 'booking:cancel' booking.id %}"
+                    class="btn-cancel-booking"
+                >
                     Hủy lịch
                 </a>
             </div>
         {% elif booking.is_expired and booking.status != 'cancelled' and booking.status != 'completed' %}
             <div class="expired-notice">
-                Lịch hẹn đã qua thời gian hiện tại nên không thể hủy.
-            </div>
-        {% endif %}
-
-        {% if booking.can_review %}
-            <div class="booking-actions">
-                <a
-                    href="{% url 'booking:review' booking.id %}"
-                    class="btn-review"
-                >
-                    Đánh giá dịch vụ
-                </a>
-            </div>
-        {% elif booking.has_review %}
-            <div class="booking-actions">
-                <a
-                    href="{% url 'booking:review_detail' booking.id %}"
-                    class="btn-view-review"
-                >
-                    Xem đánh giá
-                </a>
+                Lịch hẹn đã qua thời gian hiện tại nên không thể cập nhật hoặc hủy.
             </div>
         {% endif %}
 
@@ -356,7 +346,7 @@
         margin-top: 5px;
         color: var(--muted);
         font-size: 12px;
-        line-height: 1.4;
+        line-height: 1.5;
     }
 
     .booking-extra,
@@ -424,8 +414,11 @@
         margin-top: 18px;
         display: flex;
         justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
+    .btn-update-booking,
     .btn-cancel-booking {
         display: inline-flex;
         align-items: center;
@@ -433,66 +426,30 @@
         min-height: 42px;
         padding: 0 18px;
         border-radius: 999px;
+        font-weight: 900;
+        transition: 0.2s ease;
+    }
+
+    .btn-update-booking {
+        background: #eef8ff;
+        color: #1976a3;
+        border: 1px solid rgba(25, 118, 163, 0.2);
+    }
+
+    .btn-update-booking:hover {
+        background: #1976a3;
+        color: white;
+    }
+
+    .btn-cancel-booking {
         background: #fff0f0;
         color: #c0392b;
         border: 1px solid rgba(192, 57, 43, 0.2);
-        font-weight: 900;
     }
 
     .btn-cancel-booking:hover {
         background: #c0392b;
         color: white;
-    }
-
-    .btn-review {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        padding: 0 18px;
-        border-radius: 999px;
-        background: var(--accent);
-        color: white;
-        border: 1px solid var(--accent);
-        text-decoration: none;
-        font-weight: 900;
-        transition: 0.25s;
-    }
-
-    .btn-review:hover {
-        transform: translateY(-2px);
-        opacity: 0.92;
-    }
-
-    .btn-view-review {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        padding: 0 18px;
-        border-radius: 999px;
-        background: #eafaf0;
-        color: #217a3b;
-        border: 1px solid rgba(33, 122, 59, 0.2);
-        text-decoration: none;
-        font-weight: 900;
-        transition: 0.25s;
-    }
-
-    .btn-view-review:hover {
-        background: #217a3b;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .expired-notice {
-        margin-top: 18px;
-        padding: 14px 16px;
-        border-radius: 16px;
-        background: #fff8e6;
-        color: #b7791f;
-        border: 1px solid rgba(183, 121, 31, 0.2);
-        font-weight: 800;
     }
 
     .empty-box {
@@ -531,9 +488,8 @@
             justify-content: stretch;
         }
 
-        .btn-cancel-booking,
-        .btn-review,
-        .btn-view-review {
+        .btn-update-booking,
+        .btn-cancel-booking {
             width: 100%;
         }
     }

@@ -1,0 +1,610 @@
+{% extends 'base.html' %}
+
+{% block title %}Cập nhật lịch đặt - Spa Booking{% endblock %}
+
+{% block content %}
+<section class="update-page">
+    <div class="update-card">
+        <div class="update-heading">
+            <p>Cập nhật lịch đặt</p>
+
+            <h1>{{ booking.service.name }}</h1>
+
+            <span>
+                Cập nhật ngày, giờ, dịch vụ và số lượng khách cho lịch hẹn.
+            </span>
+        </div>
+
+        {% if messages %}
+            <div class="message-list">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            class="update-form"
+            id="updateBookingForm"
+        >
+            {% csrf_token %}
+
+            <div class="form-group full">
+                <label for="serviceSelect">Dịch vụ</label>
+
+                <select
+                    name="service"
+                    id="serviceSelect"
+                    required
+                >
+                    {% for service in services %}
+                        <option
+                            value="{{ service.id }}"
+                            data-duration="{{ service.duration_minutes|default:60 }}"
+                            {% if selected_service_id == service.id|stringformat:"s" %}selected{% endif %}
+                        >
+                            {{ service.name }} - {{ service.price }}đ
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bookingDateDisplay">
+                    Ngày đặt
+                </label>
+
+                <div class="date-picker-wrapper">
+                    <input
+                        type="text"
+                        id="bookingDateDisplay"
+                        class="date-display"
+                        placeholder="dd/mm/yyyy"
+                        readonly
+                        tabindex="-1"
+                        aria-hidden="true"
+                    >
+
+                    <span
+                        class="calendar-icon"
+                        aria-hidden="true"
+                    >
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 2v3"></path>
+                            <path d="M17 2v3"></path>
+                            <path d="M3 9h18"></path>
+                            <rect
+                                x="3"
+                                y="4"
+                                width="18"
+                                height="17"
+                                rx="3"
+                            ></rect>
+                        </svg>
+                    </span>
+
+                    <input
+                        type="date"
+                        name="booking_date"
+                        id="bookingDate"
+                        class="native-date-input"
+                        min="{{ today|date:'Y-m-d' }}"
+                        value="{{ booking.booking_date|date:'Y-m-d' }}"
+                        aria-label="Chọn ngày đặt"
+                        required
+                    >
+                </div>
+
+                <small>
+                    Nhấn vào ô để chọn ngày. Ngày hiển thị theo định dạng dd/mm/yyyy.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="bookingTime">
+                    Giờ đặt
+                </label>
+
+                <input
+                    type="time"
+                    name="booking_time"
+                    id="bookingTime"
+                    min="08:00"
+                    max="21:00"
+                    step="1800"
+                    value="{{ booking_time_value }}"
+                    required
+                >
+
+                <small>
+                    Spa chỉ nhận lịch từ 08:00 đến 21:00.
+                </small>
+            </div>
+
+            <div
+                class="form-group full client-error"
+                id="updateBookingError"
+                role="alert"
+                style="display: none;"
+            ></div>
+
+            <div class="form-group full">
+                <label for="guestCount">
+                    Số lượng khách
+                </label>
+
+                <input
+                    type="number"
+                    name="guest_count"
+                    id="guestCount"
+                    min="1"
+                    max="50"
+                    value="{{ guest_count_value }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group full">
+                <label>Hình thức thanh toán</label>
+
+                <div class="readonly-payment">
+                    {{ booking.get_payment_method_display }}
+                </div>
+
+                <small>
+                    Hình thức thanh toán không thay đổi khi cập nhật lịch.
+                </small>
+            </div>
+
+            <div class="form-group full">
+                <label for="bookingNote">Ghi chú</label>
+
+                <textarea
+                    name="note"
+                    id="bookingNote"
+                    rows="4"
+                    placeholder="Nhập ghi chú nếu có"
+                >{{ note_value }}</textarea>
+            </div>
+
+            <div class="update-actions full">
+                <a
+                    href="{% url 'booking:mine' %}"
+                    class="btn-back"
+                >
+                    Quay lại
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn-update"
+                >
+                    Lưu cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+    const updateBookingForm = document.getElementById(
+        'updateBookingForm'
+    );
+
+    const bookingDate = document.getElementById(
+        'bookingDate'
+    );
+
+    const bookingDateDisplay = document.getElementById(
+        'bookingDateDisplay'
+    );
+
+    const bookingTime = document.getElementById(
+        'bookingTime'
+    );
+
+    const serviceSelect = document.getElementById(
+        'serviceSelect'
+    );
+
+    const updateBookingError = document.getElementById(
+        'updateBookingError'
+    );
+
+    function formatDateToVietnamese(dateValue) {
+        if (!dateValue) {
+            return '';
+        }
+
+        const parts = dateValue.split('-');
+
+        if (parts.length !== 3) {
+            return '';
+        }
+
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+
+        return `${day}/${month}/${year}`;
+    }
+
+    function syncBookingDateDisplay() {
+        bookingDateDisplay.value = formatDateToVietnamese(
+            bookingDate.value
+        );
+    }
+
+    function showUpdateError(message) {
+        updateBookingError.textContent = message;
+        updateBookingError.style.display = 'block';
+
+        updateBookingError.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }
+
+    function hideUpdateError() {
+        updateBookingError.textContent = '';
+        updateBookingError.style.display = 'none';
+    }
+
+    function validateWorkingHours() {
+        hideUpdateError();
+
+        if (!bookingDate.value || !bookingTime.value) {
+            return true;
+        }
+
+        const selectedDateTime = new Date(
+            bookingDate.value + 'T' + bookingTime.value
+        );
+
+        if (
+            Number.isNaN(selectedDateTime.getTime())
+        ) {
+            showUpdateError(
+                'Ngày hoặc giờ đặt lịch không hợp lệ.'
+            );
+            return false;
+        }
+
+        if (selectedDateTime <= new Date()) {
+            showUpdateError(
+                'Không thể cập nhật lịch với ngày hoặc giờ đã qua.'
+            );
+            return false;
+        }
+
+        const timeParts = bookingTime.value
+            .split(':')
+            .map(Number);
+
+        const hour = timeParts[0];
+        const minute = timeParts[1];
+        const startMinutes = hour * 60 + minute;
+
+        const openingMinutes = 8 * 60;
+        const closingMinutes = 21 * 60;
+
+        if (
+            startMinutes < openingMinutes
+            || startMinutes > closingMinutes
+        ) {
+            showUpdateError(
+                'Spa chỉ làm việc từ 08:00 đến 21:00.'
+            );
+            return false;
+        }
+
+        const selectedOption =
+            serviceSelect.options[
+                serviceSelect.selectedIndex
+            ];
+
+        const duration = Number(
+            selectedOption?.dataset.duration || 60
+        );
+
+        if (
+            startMinutes + duration
+            > closingMinutes
+        ) {
+            showUpdateError(
+                'Dịch vụ sẽ kết thúc sau 21:00. '
+                + 'Vui lòng chọn giờ sớm hơn.'
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    bookingDate.addEventListener(
+        'change',
+        function() {
+            syncBookingDateDisplay();
+            hideUpdateError();
+        }
+    );
+
+    bookingTime.addEventListener(
+        'change',
+        hideUpdateError
+    );
+
+    serviceSelect.addEventListener(
+        'change',
+        hideUpdateError
+    );
+
+    updateBookingForm.addEventListener(
+        'submit',
+        function(event) {
+            if (!validateWorkingHours()) {
+                event.preventDefault();
+            }
+        }
+    );
+
+    syncBookingDateDisplay();
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .update-page {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .update-card {
+        width: 100%;
+        max-width: 760px;
+        padding: 34px;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: white;
+        box-shadow: var(--shadow);
+    }
+
+    .update-heading {
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .update-heading p {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .update-heading h1 {
+        margin: 0 0 8px;
+        color: var(--text);
+    }
+
+    .update-heading span {
+        color: var(--muted);
+    }
+
+    .message-list,
+    .update-form {
+        display: grid;
+        gap: 18px;
+    }
+
+    .update-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-group {
+        display: grid;
+        gap: 8px;
+    }
+
+    .full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        color: var(--text);
+        font-weight: 800;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    .readonly-payment {
+        width: 100%;
+        padding: 13px 15px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: white;
+        color: var(--text);
+        font: inherit;
+        outline: none;
+    }
+
+    .form-group input,
+    .readonly-payment {
+        min-height: 50px;
+    }
+
+    .readonly-payment {
+        display: flex;
+        align-items: center;
+        background: #fff1f5;
+        color: var(--accent);
+        font-weight: 800;
+    }
+
+    .form-group small {
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+    }
+
+    .date-picker-wrapper {
+        position: relative;
+        width: 100%;
+        min-height: 50px;
+    }
+
+    .date-display {
+        width: 100%;
+        min-height: 50px;
+        padding: 0 52px 0 15px !important;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: #ffffff !important;
+        color: var(--text);
+        font: inherit;
+        cursor: pointer;
+        pointer-events: none;
+    }
+
+    .date-display::placeholder {
+        color: #999999;
+    }
+
+    .calendar-icon {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        z-index: 2;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translateY(-50%);
+        color: var(--accent);
+        pointer-events: none;
+    }
+
+    .calendar-icon svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .native-date-input {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        width: 100% !important;
+        height: 100%;
+        min-height: 50px;
+        margin: 0 !important;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .date-picker-wrapper:focus-within .date-display {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+    }
+
+    .client-error {
+        padding: 14px 16px;
+        border: 1px solid rgba(192, 57, 43, 0.22);
+        border-radius: 15px;
+        background: #fff0f0;
+        color: #c0392b;
+        font-weight: 800;
+        line-height: 1.6;
+    }
+
+    .message {
+        padding: 14px 16px;
+        border-radius: 15px;
+        background: #fff0f0;
+        color: #c0392b;
+        font-weight: 800;
+    }
+
+    .message.success {
+        background: #f0fff4;
+        color: #217a3b;
+    }
+
+    .update-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn-back,
+    .btn-update {
+        min-height: 48px;
+        padding: 0 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .btn-back {
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--accent);
+    }
+
+    .btn-update {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: white;
+    }
+
+    .btn-update:hover {
+        background: var(--accent-strong);
+        border-color: var(--accent-strong);
+    }
+
+    @media (max-width: 600px) {
+        .update-card {
+            padding: 25px 18px;
+        }
+
+        .update-form {
+            grid-template-columns: 1fr;
+        }
+
+        .full {
+            grid-column: auto;
+        }
+
+        .update-actions {
+            flex-direction: column;
+        }
+
+        .btn-back,
+        .btn-update {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
