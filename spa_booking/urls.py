@@ -1,6 +1,4 @@
-"""
-URL configuration for spa_booking project.
-"""
+"""URL configuration for spa_booking project."""
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -17,9 +15,7 @@ admin.site.index_title = 'Bảng điều khiển quản trị'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
     path('', home, name='home'),
-
     path('services/', include('services.urls')),
     path('booking/', include('booking.urls')),
     path('staff/', include('staff.urls')),
@@ -27,9 +23,14 @@ urlpatterns = [
 ]
 
 
+handler400 = 'spa_booking.error_handlers.bad_request'
+handler403 = 'spa_booking.error_handlers.permission_denied'
+handler404 = 'spa_booking.error_handlers.page_not_found'
+handler500 = 'spa_booking.error_handlers.server_error'
+
+
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
+        document_root=settings.MEDIA_ROOT,
     )
-    
