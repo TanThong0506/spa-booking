@@ -29,8 +29,8 @@
 
             <p>
                 Chúng tôi sẽ tiếp nhận lịch hẹn của bạn và xác nhận trong thời gian sớm nhất.
-                Sau khi được xác nhận, bạn có thể xem trạng thái và nhân viên phục vụ trong mục
-                “Dịch vụ của tôi”.
+                Sau khi được xác nhận, bạn có thể xem trạng thái, phòng và nhân viên phục vụ
+                trong mục “Dịch vụ của tôi”.
             </p>
 
             <div class="info-item">
@@ -79,6 +79,22 @@
             </div>
 
             <div class="form-group full">
+                <label for="guestCount">Số lượng khách</label>
+                <input
+                    type="number"
+                    name="guest_count"
+                    id="guestCount"
+                    min="1"
+                    max="50"
+                    value="{{ request.POST.guest_count|default:'1' }}"
+                    required
+                >
+                <small class="field-help">
+                    Spa sẽ dựa vào số lượng khách để sắp xếp phòng có sức chứa phù hợp.
+                </small>
+            </div>
+
+            <div class="form-group full">
                 <label>Dịch vụ</label>
                 <select name="service" id="serviceSelect" required>
                     <option value="">Chọn dịch vụ</option>
@@ -101,7 +117,7 @@
                 <input
                     type="date"
                     name="booking_date"
-                    min="{{ today|date:'Y-m-d' }}"
+                    min="{{ today|date:'d-m-Y' }}"
                     value="{{ request.POST.booking_date }}"
                     required
                 >
@@ -400,6 +416,12 @@
 
     .form-group.full {
         grid-column: 1 / -1;
+    }
+
+    .field-help {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
     }
 
     .form-group label {

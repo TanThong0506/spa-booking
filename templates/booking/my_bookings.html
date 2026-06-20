@@ -7,7 +7,7 @@
 <section class="page-title">
     <p>Lịch hẹn của bạn</p>
     <h1>Các lịch đã đặt</h1>
-    <span>Theo dõi trạng thái lịch hẹn, nhân viên phục vụ và hoàn tiền nếu có.</span>
+    <span>Theo dõi trạng thái lịch hẹn, phòng, nhân viên phục vụ và hoàn tiền nếu có.</span>
 </section>
 
 {% if messages %}
@@ -49,6 +49,28 @@
             <div class="booking-info-item">
                 <span>Thanh toán</span>
                 <strong>{{ booking.get_payment_method_display }}</strong>
+            </div>
+
+            <div class="booking-info-item">
+                <span>Số lượng khách</span>
+                <strong>{{ booking.guest_count|default:1 }} khách</strong>
+            </div>
+
+            <div class="booking-info-item">
+                <span>Phòng phục vụ</span>
+
+                {% if booking.status == 'confirmed' or booking.status == 'completed' %}
+                    {% if booking.room %}
+                        <strong>{{ booking.room.name }}</strong>
+                        <small>
+                            Sức chứa {{ booking.room.capacity }} khách
+                        </small>
+                    {% else %}
+                        <strong>Đang sắp xếp</strong>
+                    {% endif %}
+                {% else %}
+                    <strong>Chưa được phân phòng</strong>
+                {% endif %}
             </div>
 
             <div class="booking-info-item">
@@ -303,7 +325,7 @@
 
     .booking-info-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 14px;
     }
 
@@ -323,8 +345,18 @@
     }
 
     .booking-info-item strong {
+        display: block;
         color: var(--accent);
         font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .booking-info-item small {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
     }
 
     .booking-extra,
