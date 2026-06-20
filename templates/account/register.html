@@ -4,313 +4,524 @@
 
 {% block content %}
 <section class="register-page">
-    <div class="register-card">
-        <div class="register-heading">
-            <p>Tài khoản</p>
+    <div class="register-shell">
 
-            <h1>Đăng ký</h1>
+        <aside class="register-intro">
+            <div class="intro-badge">
+                <span>✦</span>
+                Relax Spa
+            </div>
 
-            <span>
-                Tạo tài khoản để đặt lịch spa và theo dõi lịch hẹn của bạn.
-            </span>
-        </div>
+            <div class="intro-content">
+                <p class="intro-kicker">Chăm sóc bản thân mỗi ngày</p>
 
-        {% if messages %}
-            <div class="message-list">
-                {% for message in messages %}
-                    <div class="message {{ message.tags }}">
-                        {{ message }}
+                <h1>
+                    Đặt lịch spa
+                    <span>nhanh chóng và tiện lợi</span>
+                </h1>
+
+                <p class="intro-description">
+                    Tạo tài khoản để lựa chọn dịch vụ, theo dõi lịch hẹn,
+                    xem phòng phục vụ và quản lý các đánh giá của bạn.
+                </p>
+
+                <div class="intro-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✓</span>
+                        <div>
+                            <strong>Đặt lịch trực tuyến</strong>
+                            <small>Chọn ngày, giờ và dịch vụ phù hợp.</small>
+                        </div>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
-        <form
-            method="post"
-            action="{% url 'accounts:register' %}"
-            class="register-form"
-        >
-            {% csrf_token %}
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✓</span>
+                        <div>
+                            <strong>Theo dõi lịch hẹn</strong>
+                            <small>Cập nhật trạng thái nhanh chóng.</small>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label for="id_name">Tên</label>
-
-                <input
-                    type="text"
-                    name="name"
-                    id="id_name"
-                    value="{{ request.POST.name|default:'' }}"
-                    placeholder="Nhập tên của bạn"
-                    autocomplete="name"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="id_phone">Số điện thoại</label>
-
-                <input
-                    type="text"
-                    name="phone"
-                    id="id_phone"
-                    value="{{ request.POST.phone|default:'' }}"
-                    placeholder="Nhập số điện thoại"
-                    autocomplete="tel"
-                    inputmode="tel"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="id_email">Email</label>
-
-                <input
-                    type="email"
-                    name="email"
-                    id="id_email"
-                    value="{{ request.POST.email|default:'' }}"
-                    placeholder="Nhập email"
-                    autocomplete="email"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="id_password1">Mật khẩu</label>
-
-                <div class="password-wrapper">
-                    <input
-                        type="password"
-                        name="password1"
-                        id="id_password1"
-                        placeholder="Nhập mật khẩu tối thiểu 6 ký tự"
-                        autocomplete="new-password"
-                        minlength="6"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        class="toggle-password"
-                        data-password-target="id_password1"
-                        aria-label="Hiện mật khẩu"
-                        title="Hiện mật khẩu"
-                    >
-                        <svg
-                            class="eye-open"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
-                            ></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-
-                        <svg
-                            class="eye-closed"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <path d="M3 3l18 18"></path>
-                            <path
-                                d="M10.6 6.2A10.6 10.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.7"
-                            ></path>
-                            <path
-                                d="M6.2 6.2C3.5 8 2 12 2 12s3.5 6 10 6a10 10 0 0 0 4.1-.8"
-                            ></path>
-                            <path
-                                d="M9.9 9.9A3 3 0 0 0 14.1 14.1"
-                            ></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <small class="field-help">
-                    Mật khẩu phải có ít nhất 6 ký tự.
-                </small>
-            </div>
-
-            <div class="form-group">
-                <label for="id_password2">Xác nhận mật khẩu</label>
-
-                <div class="password-wrapper">
-                    <input
-                        type="password"
-                        name="password2"
-                        id="id_password2"
-                        placeholder="Nhập lại mật khẩu"
-                        autocomplete="new-password"
-                        minlength="6"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        class="toggle-password"
-                        data-password-target="id_password2"
-                        aria-label="Hiện mật khẩu"
-                        title="Hiện mật khẩu"
-                    >
-                        <svg
-                            class="eye-open"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
-                            ></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-
-                        <svg
-                            class="eye-closed"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <path d="M3 3l18 18"></path>
-                            <path
-                                d="M10.6 6.2A10.6 10.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.7"
-                            ></path>
-                            <path
-                                d="M6.2 6.2C3.5 8 2 12 2 12s3.5 6 10 6a10 10 0 0 0 4.1-.8"
-                            ></path>
-                            <path
-                                d="M9.9 9.9A3 3 0 0 0 14.1 14.1"
-                            ></path>
-                        </svg>
-                    </button>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✓</span>
+                        <div>
+                            <strong>Thông tin được bảo mật</strong>
+                            <small>Dữ liệu tài khoản được bảo vệ an toàn.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn register-submit">
-                Đăng ký
-            </button>
-        </form>
+            <div class="intro-decoration decoration-one"></div>
+            <div class="intro-decoration decoration-two"></div>
+        </aside>
 
-        <p class="login-link">
-            Đã có tài khoản?
+        <div class="register-form-panel">
+            <div class="form-heading">
+                <p>Tạo tài khoản mới</p>
+                <h2>Đăng ký</h2>
+                <span>
+                    Điền đầy đủ thông tin bên dưới để bắt đầu.
+                </span>
+            </div>
 
-            <a href="{% url 'accounts:login' %}">
-                Đăng nhập
-            </a>
-        </p>
+            {% if messages %}
+                <div class="message-list">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="form-alert" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form
+                method="post"
+                action="{% url 'accounts:register' %}"
+                class="register-form"
+                novalidate
+            >
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                        <label for="id_name">
+                            Họ và tên
+                            <span>*</span>
+                        </label>
+
+                        <div class="input-wrap">
+                            <span class="input-icon">👤</span>
+
+                            <input
+                                type="text"
+                                name="name"
+                                id="id_name"
+                                class="form-control"
+                                placeholder="Nhập họ và tên"
+                                value="{{ form.name.value|default_if_none:'' }}"
+                                autocomplete="name"
+                                required
+                            >
+                        </div>
+
+                        {% for error in form.name.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group {% if form.phone.errors %}has-error{% endif %}">
+                        <label for="id_phone">
+                            Số điện thoại
+                            <span>*</span>
+                        </label>
+
+                        <div class="input-wrap">
+                            <span class="input-icon">☎</span>
+
+                            <input
+                                type="tel"
+                                name="phone"
+                                id="id_phone"
+                                class="form-control"
+                                placeholder="Ví dụ: 0912345678"
+                                value="{{ form.phone.value|default_if_none:'' }}"
+                                inputmode="numeric"
+                                autocomplete="tel"
+                                maxlength="20"
+                                required
+                            >
+                        </div>
+
+                        {% for error in form.phone.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group full {% if form.email.errors %}has-error{% endif %}">
+                    <label for="id_email">
+                        Email
+                        <span>*</span>
+                    </label>
+
+                    <div class="input-wrap">
+                        <span class="input-icon">✉</span>
+
+                        <input
+                            type="email"
+                            name="email"
+                            id="id_email"
+                            class="form-control"
+                            placeholder="Nhập địa chỉ email"
+                            value="{{ form.email.value|default_if_none:'' }}"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+
+                    {% for error in form.email.errors %}
+                        <small class="field-error">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group {% if form.password1.errors %}has-error{% endif %}">
+                        <label for="id_password1">
+                            Mật khẩu
+                            <span>*</span>
+                        </label>
+
+                        <div class="input-wrap password-wrap">
+                            <span class="input-icon">🔒</span>
+
+                            <input
+                                type="password"
+                                name="password1"
+                                id="id_password1"
+                                class="form-control"
+                                placeholder="Nhập mật khẩu"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                data-target="id_password1"
+                                aria-label="Hiện mật khẩu"
+                            >
+                                👁
+                            </button>
+                        </div>
+
+                        {% for error in form.password1.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group {% if form.password2.errors %}has-error{% endif %}">
+                        <label for="id_password2">
+                            Xác nhận mật khẩu
+                            <span>*</span>
+                        </label>
+
+                        <div class="input-wrap password-wrap">
+                            <span class="input-icon">🔐</span>
+
+                            <input
+                                type="password"
+                                name="password2"
+                                id="id_password2"
+                                class="form-control"
+                                placeholder="Nhập lại mật khẩu"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                data-target="id_password2"
+                                aria-label="Hiện mật khẩu"
+                            >
+                                👁
+                            </button>
+                        </div>
+
+                        {% for error in form.password2.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="password-note">
+                    <span>i</span>
+                    Mật khẩu cần ít nhất 8 ký tự, không chỉ gồm chữ số.
+                </div>
+
+                <button type="submit" class="register-button">
+                    Tạo tài khoản
+                    <span>→</span>
+                </button>
+            </form>
+
+            <div class="login-link">
+                Đã có tài khoản?
+                <a href="{% url 'accounts:login' %}">
+                    Đăng nhập ngay
+                </a>
+            </div>
+        </div>
     </div>
 </section>
 
 <script>
-    const togglePasswordButtons = document.querySelectorAll(
-        '.toggle-password'
+    document.querySelectorAll('.toggle-password').forEach(
+        function(button) {
+            button.addEventListener('click', function() {
+                const input = document.getElementById(
+                    button.dataset.target
+                );
+
+                if (!input) {
+                    return;
+                }
+
+                const isHidden = input.type === 'password';
+
+                input.type = isHidden ? 'text' : 'password';
+                button.textContent = isHidden ? '🙈' : '👁';
+                button.setAttribute(
+                    'aria-label',
+                    isHidden ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+                );
+            });
+        }
     );
-
-    togglePasswordButtons.forEach(function(button) {
-        button.addEventListener('click', function() {
-            const targetId = button.getAttribute(
-                'data-password-target'
-            );
-
-            const passwordInput = document.getElementById(targetId);
-
-            if (!passwordInput) {
-                return;
-            }
-
-            const passwordIsHidden =
-                passwordInput.type === 'password';
-
-            passwordInput.type = passwordIsHidden
-                ? 'text'
-                : 'password';
-
-            button.classList.toggle(
-                'showing',
-                passwordIsHidden
-            );
-
-            const buttonText = passwordIsHidden
-                ? 'Ẩn mật khẩu'
-                : 'Hiện mật khẩu';
-
-            button.setAttribute('aria-label', buttonText);
-            button.setAttribute('title', buttonText);
-        });
-    });
 </script>
 {% endblock %}
 
 {% block extra_css %}
 <style>
     .register-page {
-        min-height: 70vh;
+        min-height: calc(100vh - 90px);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 16px;
+        padding: 42px 22px 60px;
+        background:
+            radial-gradient(
+                circle at top left,
+                rgba(199, 91, 122, 0.08),
+                transparent 34%
+            ),
+            linear-gradient(180deg, #fffafb 0%, #ffffff 100%);
     }
 
-    .register-card {
-        width: 100%;
-        max-width: 600px;
-        padding: 34px;
-        border: 1px solid rgba(199, 91, 122, 0.12);
-        border-radius: 28px;
+    .register-shell {
+        width: min(1120px, 100%);
+        min-height: 650px;
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        overflow: hidden;
+        border: 1px solid rgba(199, 91, 122, 0.14);
+        border-radius: 34px;
         background: #ffffff;
-        box-shadow: 0 18px 50px rgba(199, 91, 122, 0.08);
+        box-shadow: 0 28px 70px rgba(116, 61, 81, 0.14);
     }
 
-    .register-heading {
-        margin-bottom: 24px;
+    .register-intro {
+        position: relative;
+        overflow: hidden;
+        padding: 42px;
+        background:
+            linear-gradient(
+                145deg,
+                #c85b7b 0%,
+                #a93e61 55%,
+                #7f2948 100%
+            );
+        color: white;
     }
 
-    .register-heading p {
-        margin: 0 0 10px;
+    .intro-badge {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 0 16px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        font-weight: 900;
+    }
+
+    .intro-badge span {
+        font-size: 18px;
+    }
+
+    .intro-content {
+        position: relative;
+        z-index: 2;
+        margin-top: 82px;
+    }
+
+    .intro-kicker {
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 2.2px;
+        text-transform: uppercase;
+        opacity: 0.82;
+    }
+
+    .intro-content h1 {
+        margin: 0;
+        max-width: 460px;
+        font-size: clamp(38px, 5vw, 58px);
+        line-height: 1.08;
+        letter-spacing: -1.5px;
+    }
+
+    .intro-content h1 span {
+        display: block;
+        color: #ffdbe7;
+    }
+
+    .intro-description {
+        max-width: 470px;
+        margin: 24px 0 30px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 16px;
+        line-height: 1.75;
+    }
+
+    .intro-benefits {
+        display: grid;
+        gap: 15px;
+    }
+
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .benefit-icon {
+        width: 35px;
+        height: 35px;
+        flex: 0 0 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.16);
+        font-weight: 900;
+    }
+
+    .benefit-item strong,
+    .benefit-item small {
+        display: block;
+    }
+
+    .benefit-item strong {
+        margin-bottom: 3px;
+        font-size: 14px;
+    }
+
+    .benefit-item small {
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.4;
+    }
+
+    .intro-decoration {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        filter: blur(1px);
+    }
+
+    .decoration-one {
+        width: 260px;
+        height: 260px;
+        top: -95px;
+        right: -80px;
+    }
+
+    .decoration-two {
+        width: 190px;
+        height: 190px;
+        bottom: -80px;
+        left: -50px;
+    }
+
+    .register-form-panel {
+        padding: 48px 54px 42px;
+    }
+
+    .form-heading {
+        margin-bottom: 28px;
+    }
+
+    .form-heading p {
+        margin: 0 0 8px;
         color: var(--accent);
+        font-size: 13px;
         font-weight: 900;
         letter-spacing: 2px;
         text-transform: uppercase;
     }
 
-    .register-heading h1 {
-        margin: 0 0 12px;
+    .form-heading h2 {
+        margin: 0;
         color: var(--text);
-        font-size: 36px;
+        font-size: 38px;
+        line-height: 1.15;
     }
 
-    .register-heading span {
+    .form-heading span {
+        display: block;
+        margin-top: 10px;
         color: var(--muted);
-        line-height: 1.7;
+        line-height: 1.6;
     }
 
     .message-list {
         display: grid;
-        gap: 12px;
+        gap: 10px;
         margin-bottom: 20px;
     }
 
-    .message {
-        padding: 14px 16px;
-        border: 1px solid rgba(199, 91, 122, 0.2);
-        border-radius: 16px;
-        background: #fff1f5;
-        color: var(--accent-strong);
+    .message,
+    .form-alert {
+        padding: 13px 15px;
+        border: 1px solid rgba(192, 57, 43, 0.18);
+        border-radius: 14px;
+        background: #fff3f3;
+        color: #b5332a;
         font-weight: 800;
-    }
-
-    .message.error {
-        border-color: rgba(192, 57, 43, 0.2);
-        background: #fff0f0;
-        color: #c0392b;
+        line-height: 1.5;
     }
 
     .message.success {
-        border-color: rgba(33, 122, 59, 0.2);
-        background: #f0fff4;
+        border-color: rgba(33, 122, 59, 0.18);
+        background: #effaf3;
         color: #217a3b;
+    }
+
+    .form-alert {
+        margin-bottom: 20px;
+    }
+
+    .form-alert p {
+        margin: 0;
+    }
+
+    .form-alert p + p {
+        margin-top: 6px;
     }
 
     .register-form {
         display: grid;
         gap: 18px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
 
     .form-group {
@@ -319,108 +530,155 @@
     }
 
     .form-group label {
-        color: var(--text);
-        font-weight: 800;
+        color: #2f272a;
+        font-size: 14px;
+        font-weight: 900;
     }
 
-    .register-form input {
+    .form-group label span {
+        color: #c0392b;
+    }
+
+    .input-wrap {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        z-index: 2;
+        width: 24px;
+        transform: translateY(-50%);
+        color: #b18493;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .form-control {
         width: 100%;
-        min-height: 50px;
-        margin: 0;
-        padding: 0 16px;
-        border: 1px solid rgba(199, 91, 122, 0.2);
-        border-radius: 14px;
-        background: #ffffff;
-        color: var(--text);
+        min-height: 52px;
+        padding: 0 16px 0 48px;
+        border: 1px solid #eadde2;
+        border-radius: 15px;
+        background: #fffdfd;
+        color: #2f272a;
         font: inherit;
         outline: none;
-        box-sizing: border-box;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
     }
 
-    .register-form input:focus {
+    .form-control::placeholder {
+        color: #b4a9ad;
+    }
+
+    .form-control:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.12);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(199, 91, 122, 0.11);
     }
 
-    .password-wrapper {
-        position: relative;
-        width: 100%;
-    }
-
-    .password-wrapper input {
-        padding-right: 58px;
+    .password-wrap .form-control {
+        padding-right: 56px;
     }
 
     .toggle-password {
         position: absolute;
         top: 50%;
-        right: 10px;
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        right: 8px;
+        z-index: 3;
+        width: 39px;
+        height: 39px;
         transform: translateY(-50%);
-        border: none;
-        border-radius: 50%;
-        background: transparent;
-        color: #777777;
+        border: 0;
+        border-radius: 12px;
+        background: #fff1f5;
         cursor: pointer;
-        z-index: 2;
-        transition:
-            color 0.2s ease,
-            background 0.2s ease;
+        transition: background 0.2s ease;
     }
 
     .toggle-password:hover {
-        color: var(--accent);
-        background: rgba(199, 91, 122, 0.08);
+        background: #f8dfe8;
     }
 
-    .toggle-password:focus-visible {
-        outline: 3px solid rgba(199, 91, 122, 0.2);
-    }
-
-    .toggle-password svg {
-        width: 23px;
-        height: 23px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 1.8;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-    }
-
-    .toggle-password .eye-closed {
-        display: none;
-    }
-
-    .toggle-password.showing .eye-open {
-        display: none;
-    }
-
-    .toggle-password.showing .eye-closed {
+    .field-error {
         display: block;
+        color: #c0392b;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.45;
     }
 
-    .field-help {
-        color: var(--muted);
-        font-size: 13px;
+    .has-error .form-control {
+        border-color: #d84a4a;
+        background: #fffafa;
+    }
+
+    .password-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-top: -3px;
+        padding: 11px 13px;
+        border-radius: 13px;
+        background: #fff7fa;
+        color: #7c6870;
+        font-size: 12px;
         line-height: 1.5;
     }
 
-    .register-submit {
-        width: 100%;
-        min-height: 50px;
-        margin-top: 2px;
-        border: none;
+    .password-note span {
+        width: 19px;
+        height: 19px;
+        flex: 0 0 19px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f3d8e2;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 900;
+    }
+
+    .register-button {
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        border: 0;
+        border-radius: 15px;
+        background:
+            linear-gradient(
+                135deg,
+                #cf5c7e,
+                #af3e62
+            );
+        color: white;
+        font: inherit;
+        font-weight: 900;
         cursor: pointer;
-        font-size: 16px;
+        box-shadow: 0 12px 25px rgba(175, 62, 98, 0.22);
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .register-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 30px rgba(175, 62, 98, 0.27);
+    }
+
+    .register-button span {
+        font-size: 20px;
     }
 
     .login-link {
-        margin: 24px 0 0;
+        margin-top: 22px;
         color: var(--muted);
         text-align: center;
     }
@@ -430,22 +688,53 @@
         font-weight: 900;
     }
 
-    .login-link a:hover {
-        color: var(--accent-strong);
+    @media (max-width: 940px) {
+        .register-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .register-intro {
+            min-height: 330px;
+        }
+
+        .intro-content {
+            margin-top: 42px;
+        }
+
+        .intro-benefits {
+            grid-template-columns: repeat(3, 1fr);
+        }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
         .register-page {
-            padding: 28px 10px;
+            padding: 24px 12px 40px;
         }
 
-        .register-card {
-            padding: 26px 20px;
-            border-radius: 22px;
+        .register-shell {
+            border-radius: 24px;
         }
 
-        .register-heading h1 {
-            font-size: 31px;
+        .register-intro,
+        .register-form-panel {
+            padding: 28px 22px;
+        }
+
+        .register-intro {
+            min-height: auto;
+        }
+
+        .intro-content h1 {
+            font-size: 38px;
+        }
+
+        .intro-benefits,
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-heading h2 {
+            font-size: 32px;
         }
     }
 </style>
