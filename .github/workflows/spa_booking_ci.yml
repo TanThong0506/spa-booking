@@ -1,50 +1,122 @@
-name: Publish Docker Package
+name: Spa Booking CI
 
 on:
-  workflow_run:
-    workflows:
-      - Spa Booking CI
-    types:
-      - completed
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "fix/**"
+      - "chore/**"
+
+  workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
+
+concurrency:
+  group: spa-booking-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12.5"
+  SECRET_KEY: "github-actions-ci-secret-key"
+  DEBUG: "False"
+  DB_ENGINE: "sqlite"
+  ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+  SECURE_SSL_REDIRECT: "False"
 
 jobs:
-  publish-ghcr:
-    name: Publish Image To GHCR
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main'
+  django-ci:
+    name: Django Check And Test
     runs-on: ubuntu-latest
 
-    env:
-      IMAGE_NAME: ghcr.io/tanthong0506/spa-booking
-      IMAGE_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            default-libmysqlclient-dev \
+            libpq-dev \
+            pkg-config
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall \
+            accounts \
+            booking \
+            services \
+            spa_booking \
+            staff
+
+      - name: Run Django system check
+        run: |
+          python manage.py check
+
+      - name: Check missing migrations
+        run: |
+          python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Run automated tests
+        run: |
+          python manage.py test --verbosity 2
+
+      - name: Collect static files
+        run: |
+          python manage.py collectstatic --noinput
+
+      - name: Test health endpoint
+        run: |
+          python manage.py shell -c "from django.test import Client; response = Client().get('/api/health/'); print(response.content.decode()); assert response.status_code == 200"
+
+      - name: Upload collected static files
+        uses: actions/upload-artifact@v7
+        with:
+          name: staticfiles-${{ github.sha }}
+          path: staticfiles/
+          if-no-files-found: error
+          retention-days: 3
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs:
+      - django-ci
 
     steps:
-      - name: Checkout tested commit
+      - name: Checkout source code
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Log in to GitHub Container Registry
+      - name: Show Docker version
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" |
-          docker login ghcr.io             --username "${{ github.actor }}"             --password-stdin
+          docker version
 
       - name: Build Docker image
         run: |
-          docker build             --label "org.opencontainers.image.source=https://github.com/TanThong0506/spa-booking"             --label "org.opencontainers.image.revision=${IMAGE_SHA}"             --tag "${IMAGE_NAME}:latest"             --tag "${IMAGE_NAME}:sha-${IMAGE_SHA}"             .
-
-      - name: Push Docker image
-        run: |
-          docker push "${IMAGE_NAME}:latest"
-          docker push "${IMAGE_NAME}:sha-${IMAGE_SHA}"
-
-      - name: Show published image
-        run: |
-          echo "Published:"
-          echo "${IMAGE_NAME}:latest"
-          echo "${IMAGE_NAME}:sha-${IMAGE_SHA}"
+          docker build \
+            --progress=plain \
+            --tag "spa-booking:${GITHUB_SHA}" \
+            .
